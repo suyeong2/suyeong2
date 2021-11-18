@@ -21,3 +21,107 @@ cards;
 3 three
 ;
 run;
+
+data B;
+input X Z $;
+cards;
+1 one
+2 two
+4 four
+;
+run;
+
+proc sql;
+select * from A
+union
+select * from B;
+quit;
+
+proc sql;
+select * from A
+union all
+select * from B;
+quit;
+
+proc sql;
+select * from A
+except
+select * from B;
+quit;
+
+proc sql;
+select * from A
+intersect
+select * from B;
+quit;
+
+proc sql;
+select * from A
+outer union
+select * from B;
+quit;
+
+proc sql;
+select * from A
+outer union corr
+select * from B;
+quit;
+
+proc sql;
+create table set5 as
+select * from A
+outer union
+select * from B;
+quit;
+
+proc sql;
+select * from B
+except
+select * from A;
+quit;
+
+proc sql;
+select * from A
+intersect
+select * from B;
+quit;
+
+proc sql;
+select * from A
+outer union
+select * from B;
+quit;
+
+proc sql;
+select * from A
+outer union corr
+select * from B;
+quit;
+
+proc sql;
+create table set5 as
+select * from A
+outer union
+select * from B;
+quit;
+
+proc sql;
+select * from B
+except
+select * from A;
+quit;
+
+proc sql;
+create table t1 as
+select * from A
+join B on
+A.X=B.X;
+quit;
+
+proc sql;
+create table t2_2 as
+select coalesce(A.X, B.X) as X, Y, Z
+from a
+full join B on
+A.X=B.X;
+quit;
