@@ -8,3 +8,16 @@
 suyeong2/suyeong2 is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 You can click the Preview link to take a look at your changes.
 --->
+
+option validvarname=any;
+
+
+data A;
+input X Y $;
+cards;
+1 one
+2 two
+2 two
+3 three
+;
+run;
