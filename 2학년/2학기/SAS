@@ -111,6 +111,7 @@ except
 select * from A;
 quit;
 
+/*열결헙*/
 proc sql;
 create table t1 as
 select * from A
@@ -124,4 +125,129 @@ select coalesce(A.X, B.X) as X, Y, Z
 from a
 full join B on
 A.X=B.X;
+quit;
+
+/*실습 merge사용해서 만들기*/
+
+data A;
+input X Y $;
+cards;
+1 one
+2 two
+2 two
+3 three
+;
+run;
+
+data B;
+input X Z $;
+cards;
+1 one
+2 two
+4 four
+;
+run;
+
+proc sort data=A;
+by X;
+quit;
+
+proc sort data=B;
+by X;
+quit;
+
+data test;
+merge A B;
+by X;
+quit;
+
+
+/*join*/
+data A;
+input X Y $;
+cards;
+1 one
+2 two
+2 two
+3 three
+;
+run;
+
+data B;
+input X Z $;
+cards;
+1 one
+2 two
+4 four
+;
+run;
+
+
+proc sql;
+create table t1 as
+select * from A
+join B on
+A.X=B.X;
+quit;
+
+proc sql;
+create table t2 as
+select *
+from A
+full join B on
+A.X=B.X;
+quit;
+
+proc sql;
+create table t3 as
+select * 
+from A
+left join B on
+A.X=B.X;
+quit;
+
+proc sql;
+create table t4 as
+select *
+from A
+right join B on
+A.X=B.X;
+quit;
+
+/*실습문제 */
+data data_one;
+input 아이디 성별 $;
+cards;
+1 M
+2 F
+3 F
+4 M
+5 F
+;
+run;
+
+data data_two;
+input id 연령;
+cards;
+1 35
+2 32
+4 41
+5 23
+6 34
+;
+run;
+(오답)
+proc sql;
+create table a1 as
+select coalese(data_one.아이디=data_two.id)*
+from data_one
+full join data_two on
+data_one.아이디=data_two.id;
+quit;
+
+proc sql;
+select 성별, mean(연령) as mean_s
+from a1
+group by 성별
+order by mean_s desc;
 quit;
