@@ -214,7 +214,7 @@ right join B on
 A.X=B.X;
 quit;
 
-/*실습문제 */
+/*실습문제3*/
 data data_one;
 input 아이디 성별 $;
 cards;
@@ -236,18 +236,110 @@ cards;
 6 34
 ;
 run;
-(오답)
+
+/*실습3-1*/
+proc sort data=data_one;
+by 아이디;
+run;
+
+proc sort data=data_two;
+by id;
+run;
+
+data data_join;
+merge data_one(rename=(아이디=id)) data_two;
+by id;
+run;
+
+data data_join2;
+set data_join;
+if 성별='' or 연령 =.then delete;
+run;
+
+proc sort data=data_join2;
+by 성별;
+run;
+
+proc means data=data_join2;
+var 연령;
+by 성별;
+run;
+
+/*위에 문장을 sql문을 이용하여 한문장으로 표현*/
 proc sql;
-create table a1 as
-select coalese(data_one.아이디=data_two.id)*
-from data_one
-full join data_two on
-data_one.아이디=data_two.id;
+select a.성별, mean(b.연령) as 평균연령
+from data_one as a
+join data_two as b on
+a.아이디=b.id
+group by a.성별;
 quit;
 
+/*실습3-2*/
 proc sql;
-select 성별, mean(연령) as mean_s
-from a1
-group by 성별
-order by mean_s desc;
+select a. 성별, count(*) as 빈도
+from data_one as a
+join data_two as b on
+a.아이디=b.id
+group by a.성별;
 quit;
+
+
+과제2
+/*8*/
+data homework_8;
+set homework_7_1;
+주소=trim(지역)||trim(구);
+run;
+
+
+/*10*/
+proc import
+datafile="C:\Users\OWNER\Downloads\homework2_1.csv"
+out=homework_10 dbms=csv replace;
+getnames=yes;
+run;
+
+/*11*/
+data homework_11(drop=i slalary rename=(salary2=salary));
+set homework_10;
+salary2=input(salary,comma6.);
+array missing{3} height salary credit;
+do i=1 to 3;
+if missing{i}=. then missing{i}=0;
+end;
+run;
+
+
+/*12*/
+proc import
+datafile="C:\Users\OWNER\Downloads\homework2_2.csv"
+out=homework_12 dbms=csv replace;
+getnames=yes;
+run;
+
+/*13*/;
+proc sql;
+create table homework_13 as
+select a.*, b.weight, b.birth
+from homework_11 as a
+left join homework_12 as b on
+a.name=b.이름 and a.area=b.지역;
+quit;
+
+/*case when의 활용*/
+
+/*실습문제c-1*/
+proc sql;
+create table no_age as
+select a.아이디, case when a.아이디=b.i then 1 else 0 end as chk
+from data_one as a
+left join data_two as b on
+a.아이디=b.id
+when calculated chk=0;
+quit;
+
+
+proc sql;
+create table no_s as
+select b.id, case when a.아이디=b.id then
+
