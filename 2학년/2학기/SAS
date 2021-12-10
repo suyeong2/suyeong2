@@ -404,6 +404,72 @@ run;
 %app(직업, 연령);
 
 
+/*과제3*/
+/*정답X*/
+
+/*1번*/
+proc import
+datafile="C:\Users\ju011\Downloads\homework3_1.xlsx"
+out=homework3_1 dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc sql;
+create table h3_1 as
+select gender, mean(height) as mean_s, var(height) as var_s
+from homework3_1
+group by gender;
+quit;
+
+/*2번*/
+proc import
+datafile="C:\Users\ju011\Downloads\homework3_2.xlsx"
+out=homework3_2 dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc import
+datafile="C:\Users\ju011\Downloads\homework3_3.xlsx"
+out=homework3_3 dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc sql;
+create table h3_2 as
+select coalesce(a.name, b.name, c.name) as name, a.height, a.gender, a.salary, a.grade, b.area, b.eye, b.footsize, c.blood 
+from homework3_1 as a
+full join homework3_2  as b on homework3_1.name=homework3_2.name
+full join homework3_3 as c on homework3_1.name=homework3_3.name;
+quit;
+
+/*3번*/
+%macro h3_3(v1, v2);
+proc sql;
+select &v1, mean(&v2) as mean_&v2
+from h3_2
+group by &v1;
+quit;
+%mend h3_3;
+%h3_3(blood, footsize);
+%h3_3(area,eye);
+
+/*4번*/
+proc sql;
+create table h3_4 as
+select area, mean(height) as h
+from h3_2
+where area^='대구'
+group by area;
+quit;
+
+/*5번*/
+proc sql;
+create table h3_5 as
+select mean(height), gender
+from h3_2
+where footsize > (select mean(footsize) from h3_2) and gender^=""
+group by gender;
+quit;
 
 
 
