@@ -1,1 +1,54 @@
+head(mtcars)
+#1.산점도그리기
+plot(mpg~wt,mtcars)
+#2.상관분석
+cor(mtcars$wt, mtcars$mpg)
+##-값이 나오면 음의 관계, 0.8이 나오므로 매우 높은 상관관계를 가진다가
 
+#3.회귀계수를 회귀식으로 추정
+model1<- lm(mpg~wt, mtcars)
+model1
+predict(model1, newdata = data.frame(wt=c(4.5,5.5)))#(예측)
+predict(model1, newdata = data.frame(wt=c(4.5)),
+        interval = "confidence")   #(평균에 대한 예측값의 신뢰구간)
+
+predict(model1, newdata = data.frame(wt=c(4.5)),
+        interval = "prediction")  #(새로운 값 하나가 나왔을 때의 신뢰구간이라 평균에 대한 신뢰구간 보다 값이 크다)
+
+##mpg=37.285-5.344wt
+
+library(car)
+model1<- lm(mpg~wt+I(wt^2), mtcars)
+summary(model1)
+durbinWatsonTest(model1)
+#2차 회귀식으로 추정(model1<- lm(mpg~wt+I(wt^2), mtcars)
+#인경우)
+#mpg=43.93-13.38wt+1.17wt
+
+#4.회귀모형해석
+summary(model1)
+summary(mtcars$mpg - model1$fitted.values)
+#5.회귀모형 가정 확인
+#정규성, 독립성, 등분산성
+###정규성(2가지 방법)
+#시각적
+qqnorm(model1$residuals)
+qqline(model1$residuals)
+#수치적
+shapiro.test(model1$residuals)
+##독립성
+library(car)
+#시각적(잔차도표)
+plot(model1$fitted.values, model1$residuals)
+#수치적
+durbinWatsonTest(model1)
+##등분산성
+#시각적
+spreadLevelPlot(model1)
+#수치적
+ncvTest(model1)
+#7.회귀분석 시각화
+library(ggplot2)
+ggplot(data = mtcars, aes(x=wt, y=mpg))+
+  geom_point()+
+  geom_smooth(method = "lm")
