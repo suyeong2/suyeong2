@@ -52,3 +52,84 @@ library(ggplot2)
 ggplot(data = mtcars, aes(x=wt, y=mpg))+
   geom_point()+
   geom_smooth(method = "lm")
+
+
+
+x<- seq(1,5,0.2)
+y<-x^2
+plot(x,y, pch=16)
+df<-data.frame(x,y)
+
+model<-lm(y~x,df)
+summary(model)
+
+plot(model$fitted.values,model$residuals,
+     pch=16,cex=3)
+
+
+
+
+out <- lm(dist~speed, data=cars)
+#정규성은 만족 하지만 등분산성 만족 안함, 정규성 만족
+
+out2 <- lm(sqrt(dist)~speed,data=cars)
+
+#sqrt를 씌워준후 정규성 만족, 등분산성도 만족, 독립성 만족
+
+#예측값이 루트가 씌워진 상태라 예측값 구할 때 제곱이 들어간다
+
+
+
+volume = c(412,953,929,1492,419,1010,595,1034)
+weight = c(250,700,650,975,350,950,425,725)
+
+data <- data.frame(volume, weight)
+out <- lm(weight~volume, data=data)
+confint(out)
+
+###정규성
+library(car)
+shapiro.test(out$residuals)
+##정규성을 만족하지 않으면(좌 우 대칭이 아님)
+#해결방법
+boxCox(weight~volume)#(람다 값은 y 파워 이정도면 정규성을 따르겠다~)
+#Box-Cox transformation은 종속변수를 변환하여 최대한 좌우대칭이 되도록 만들어 줍니다
+
+model1<-lm(dist~speed,cars)
+boxCox(model1)
+
+box1 <-boxCox(weight~volume, lambda=seq(0.5,1.3,0.05)) #람다해서 숫자를 넣으면 그 부분만 보여줌
+
+
+
+##분위수 회귀모형: quantreg 패키지 필요
+if(!require(quantreg)) install.packages("quantreg")
+library(quantreg)
+
+out2 <- rq(weight~volume, 0.5 )
+summary(out2)
+#중앙값을 예측하는 선형식
+
+
+###독립성
+##만족하지 않는다면 일차 회기식이 아니란것
+#만족하지 않을 경우 해결 방법
+#방법1(오차텀을 다음 텀에 영향을 미치게 바꾼다)
+if(!require(nlme)) install.packages("nlme")
+library(nlme)
+
+out1 <- gls(Quakes~Year, data=data, correlation = corAR1(form=~Year), method="ML")
+acf(resid(out1, type="normalized"))
+
+#방법2(2차나 3차 같은 다항식으로 바꾸거나 비선형식으로 바꿔보자)
+
+
+###등분산성(분산이 동일하지 않음)
+##만족하지 않을 경우 해결 방법
+#방법1(y를 조정하면서 분산동일하게 해보자)
+out1 <- lm(los^-0.06~tkatzmean, data=hospital1)
+spreadLevelPlot(out1)
+
+#방법2(ϵ ∼N(0,3.16+1.0224speed)/speed에 따라 값이 바뀌게 모형을 만들어서)
+out.gls <- gls(dist~ speed, data=cars, weight = varConstPower(1, form=~speed))
+summary(out.gls)
