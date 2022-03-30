@@ -126,7 +126,7 @@ acf(resid(out1, type="normalized"))
 
 ###등분산성(분산이 동일하지 않음)
 ##만족하지 않을 경우 해결 방법
-#방법1(y를 조정하면서 분산동일하게 해보자)
+#방법1(y(파워)를 조정하면서 분산동일하게 해보자)
 out1 <- lm(los^-0.06~tkatzmean, data=hospital1)
 spreadLevelPlot(out1)
 
