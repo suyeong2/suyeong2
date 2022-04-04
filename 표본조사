@@ -48,3 +48,37 @@ tables sex*smoke/chisq expected nocol norow nopercent;
 run;
 
 
+/*41p 문제*/
+/*1번*/
+data a1;
+input p poster ni @@;
+cards;
+1 1 621 1 2 239
+2 1 89 2 2 42
+;
+run;
+
+proc freq data=a1;
+weight ni;
+tables p*poster/chisq expected nocol norow nopercent;
+run;
+
+
+/*2번*/
+data a2;
+input yn die ni @@;
+cards;
+1 1 1601 1 2 162,527
+2 1 510 2 2 412,368
+;
+run;
+
+proc freq data=a2;
+weight ni;
+tables yn*die/chisq expected nocol norow nopercent;
+run;
+
+
+/*3번*/
+data a3;
+input 
