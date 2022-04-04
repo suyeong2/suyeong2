@@ -133,3 +133,83 @@ spreadLevelPlot(out1)
 #방법2(ϵ ∼N(0,3.16+1.0224speed)/speed에 따라 값이 바뀌게 모형을 만들어서)
 out.gls <- gls(dist~ speed, data=cars, weight = varConstPower(1, form=~speed))
 summary(out.gls)
+
+
+
+여기서부터 정리리리리리리리리리리리리리리리리리리리리리리리리리리리리ㅣ리리리리리리리리리리리리리리리리리리리
+sest.seed(1234)
+e=rnorm(21)
+y=x+e
+plot(x,y,pch=16)
+z=data.frame(x,y)
+out=lm(y~x,z)
+summary(out)
+
+> out=lm(y~x+0,z)
+> out1=lm(y~x+0,z)#y절편 추정되지 않는다(+0,-1)/디폴트값이 +1이기때문에 +0,-1을 해야 나오지 않는다
+> summary(out1)
+> out=lm(y~x,z)#y절편 추정됨
+> summary(out)
+> out2=lm(y~x,z)
+> summary(out2)
+> #y절편 추정됨(x+1이 디폴트 값으로 추정되기 때문에 +1을 넣지 않아도 절편 추정된다)
+  > out1=lm(y~x+0,z)
+> summary(out1)
+> sum(out1$residuals^2)
+[1] 39.17838
+> sum(out2$residuals^2)
+[1] 37.45699
+> y2=10+x-4*x^2+2*x^3+e
+> out11=lm(y~1+x+I(x^2)+I(x^3),z)
+> out11 
+> sest.seed(1234)
+> x=seq(1,5,0.2)
+> e=rnorm(21)
+> y2=10+x-4*x^2+2*x^3+e
+> plot(x,y,pch=16)
+> z=data.frame(x,y)
+> out11=lm(y~1+x+I(x^2)+I(x^3),z)
+> out11 
+
+
+
+#부분회귀
+> y <- c(362,357,111,703,494,410,63,616,468,973,235,180,69,305,106,155,422,44,1008,225,
+         +        321,1001,531,143,251,216,57,146,226,169,32,75,102,4,68,102,462,295,196,50,739,
+         +        287,226,706,127,85,234,153,4,373,54,81)
+> x <- c(23.5,22.4,6.1,35.9,35.5,23.2,9.1,27.5,28.6,41.3,16.9,18.2,9,28.6,12.7,11.8,27.9,21.6,
+         +        45.9,11.4,16.6,40.7,22.4,17.4,14.3,14.6,6.6,10.6,14.3,3.4,5.1,4.1,4.1,1.7,7.5,7.8,22.6,
+         +        8.6,7.7,7.8,34.7,15.6,18.5,35,16.5,11.3,7.7,14.8,2,12.4,9.2,11.8)
+> data <- data.frame(x,y)
+> library(segmented)
+> out=lm(y~x,data)
+> seg.out <- segmented(out)
+> summary(seg.out)
+sest.seed(1234)
+x=seq(1,5,0.2)
+> e=rnorm(21)
+> y=x+e
+> plot(x,y,pch=16)
+> z=data.frame(x,y)
+> out2=lm(y~x,z)
+> summary(out2)
+> #y절편 추정됨(x+1이 디폴트 값으로 추정되기 때문에 +1을 넣지 않아도 절편 추정된다)
+  > out1=lm(y~x+0,z)
+> summary(out1)
+> out11=lm(y~1+x+I(x^2)+I(x^3),z)
+> out11 
+> summary(out1)#결정계수:0.90
+> summary(out2)#결정계수:0.6914
+> sum(out2$residuals^2)
+#다차항
+> set.seed(1234)
+> x=seq(1,5,0.2)
+> e=rnorm(21)
+> y2=10+x-4*x^2+2*x^3+e/10
+> plot(x,y,pch=16)
+> z=data.frame(x,y)
+> out11=lm(y~1+x+I(x^2)+I(x^3),z)
+> summary(out11) 
+
+
+
