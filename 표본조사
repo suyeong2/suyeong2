@@ -68,8 +68,8 @@ run;
 data a2;
 input yn die ni @@;
 cards;
-1 1 1601 1 2 162,527
-2 1 510 2 2 412,368
+1 1 1601 1 2 162527
+2 1 510 2 2 412368
 ;
 run;
 
@@ -81,4 +81,20 @@ run;
 
 /*3번*/
 data a3;
-input 
+input s m ni @@;
+cards;
+1 1 105 1 2 8
+2 1 12 2 2 2
+3 1 18 3 2 19
+4 1 47 4 2 52
+5 10 5 2 13
+;
+run;
+
+proc freq data=a3;
+weight ni;
+tables s*m/chisq expected nocol norow nopercent;
+run;
+
+
+
