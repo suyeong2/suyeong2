@@ -96,5 +96,9 @@ weight ni;
 tables s*m/chisq expected nocol norow nopercent;
 run;
 
+proc freq data=a3;
+weight ni;
+tables s*m/exact;
+run;
 
 
