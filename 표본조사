@@ -48,6 +48,9 @@ tables sex*smoke/chisq expected nocol norow nopercent;
 run;
 
 
+options validvarname=any;
+
+
 /*41p 문제*/
 /*1번*/
 data a1;
@@ -63,6 +66,7 @@ weight ni;
 tables p*poster/chisq expected nocol norow nopercent;
 run;
 
+/*자유도 1, p-값 0.3489,  */
 
 /*2번*/
 data a2;
@@ -78,6 +82,7 @@ weight ni;
 tables yn*die/chisq expected nocol norow nopercent;
 run;
 
+/*자유도 1, p-값 <.0001*/
 
 /*3번*/
 data a3;
@@ -101,4 +106,4 @@ weight ni;
 tables s*m/exact;
 run;
 
-
+/*자유도 8, p-값 <.0001*/
