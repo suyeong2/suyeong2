@@ -216,4 +216,70 @@ out11=lm(y~1+x+I(x^2)+I(x^3),z)
 summary(out11) 
 
 
+##과제
+#파일 5
+slr05.csv :
+  
+  X = fires per 1000 housing units
+  Y = thefts per 1000 population
+  within the same Zip code in the Chicago metro area
+##집 1000개당 발생하는 화제 건수
+##도둑
+  
+data<-read.table("clipboard",header = T)
+head(data)
+
+#산점도
+plot(Y~X, data)
+data2<-data[data$Y<140,]
+plot(Y~X, data2)
+
+cor(data2$X, data2$Y)
+
+out<-lm(Y~X, data2)
+summary(out)
+
+x<-seq(0, 40, 0.5)
+y<-predict(out, data.frame(x=x))
+plot(Y~X, data2)
+lines(x,y, col="blue")
+
+
+abline(lm(Y~X, data2), col="blue")
+library(segmented)
+out1<-lm(Y~X, data2)
+out2<-segmented(out1)
+out2
+plot(out2, ylim=c(0,60))
+points(data2＄X, data2＄Y)
+
+
+#이상치는 제거하고
+#파일 12
+data <- read.csv("C:/Users/OWNER/Downloads/slr12.csv")
+
+data2 <- data[complete.cases(data),]
+data2 <- na.omit(data)
+
+plot(Y~X, data2)
+
+data3 <- data2[data2＄Y<1800,]
+out2 <- lm(Y~X+I(X^2), data3)
+out1 <- lm(Y~X, data3)
+summary(out1)
+summary(out2)
+
+
+
+###나중에 할거
+#x가 일차선형식이 아니라 다른 모형일 수도 있다.
+plot(sin, -pi,pi)#계절성을 반영하는 모형
+
+x<-seq(1,10,0.01)
+y<-x+sin(x)
+y2<-x
+plot(x,y,type = "l")
+lines(x,y2,col="blue")
+
+
 
