@@ -297,7 +297,142 @@ out2<-segmented(out1)
 out2
 plot(out2, ylim=c(0,60))
 points(data2＄X, data2＄Y)
+------------------------------------------
+##과제 내가 푼 답
+##단순회귀분석 해보기 과제
+##22018244 주수영
+##slr12
+data <- read.csv("C:/Users/ju011/Downloads/slr12.csv")
 
+data2 <- data[complete.cases(data),]
+data2 <- na.omit(data)
+data3 <- data2[data2$Y<1800,]
+
+#1. 산점도 그리기
+plot(Y~X, data3)
+
+#2. 상관계수 및 상관분석하기
+cor(data3$Y, data3$X)
+## 양의 관계이면서 0.4679795로 상관관계가 있다.
+
+#3. 선형식 추정하기
+out1 <- lm(Y~X, data3)
+out1
+out2 <- lm(Y~X+I(X^2), data3)
+out2
+
+#4. 단순회귀모형 분석결과 해석하기
+summary(out2)
+summary(out1)
+#X = 최초점용예정년,Y = 사용종료예정연도
+
+#5. 단수회귀모형 가정 확인하기
+## 정규성 검정
+shapiro.test(out1$residuals)#p-value = 0.4292
+shapiro.test(out2$residuals)#p-value = 0.8545
+
+## 독립성 검정
+library(car)
+durbinWatsonTest(out1)# 0.028
+durbinWatsonTest(out2)# 0
+
+##등분산성 검정
+ncvTest(out1)#p = 0.17227
+ncvTest(out2)#p = 0.0075273
+
+#6. 분석결과 시각화 하기
+library(ggplot2)
+ggplot(data = data3, aes(x=X, y=Y))+
+  geom_point()+
+  geom_smooth(method = "lm")
+
+
+
+
+
+##slr09
+a<-read.csv("C:/Users/ju011/Downloads/slr09.csv")
+head(a)
+#1. 산점도 그리기
+plot(Y~X,a)
+
+#.2. 상관계수 및 상관분석하기
+cor(a$Y,a$X)
+
+#3. 선형식 추정하기
+b<-lm(Y~X, a)
+b
+
+#4. 단순회귀모형 분석결과 해석하기
+summary(b)
+#X=우물 물의 PH, Y=우물 물의 중탄산염
+#p값이 0.04948
+
+#5. 단순회귀모형 가정 확인하기
+##정규성
+shapiro.test(b$residuals)
+#0.2327
+
+##독립성
+library(car)
+durbinWatsonTest(b)
+#0.004
+
+##등분산성
+ncvTest(b)
+#0.43111
+
+#6. 분석결과 시각화 하기
+library(ggplot2)
+ggplot(data=b, aes(x=X, y=Y))+
+  geom_point()+
+  geom_smooth(method = "lm")
+
+
+
+
+
+##slr05
+data<-read.csv("C:/Users/ju011/Downloads/slr05.csv")
+head(data)
+
+#1. 산점도 그리기
+plot(Y~X, data)
+data2<-data[data$Y<140,]
+plot(Y~X, data2)
+
+#.2. 상관계수 및 상관분석하기
+cor(data2$Y,data2$X)
+#양의관계이면서 0.3682794로 약한 상관관계를 가진다.
+
+#3. 선형식 추정하기
+out<-lm(Y~X, data2)
+
+#4. 단순회귀모형 분석결과 해석하기
+summary(out)
+#X=주택 단위 1000집당 화재 발생, Y=인구 1000명당도난 수 
+#값이 0.01783
+
+#5. 단수회귀모형 가정 확인하기
+## 정규성 검정
+shapiro.test(out$residuals)
+#p값이 0.0754
+
+## 독립성 검정
+library(car)
+durbinWatsonTest(out)
+#p값이 0.04
+
+##등분산성 검정
+ncvTest(out)
+#p값이 0.33926
+
+#6. 분석결과 시각화 하기
+library(ggplot2)
+ggplot(data = data3, aes(x=X, y=Y))+
+  geom_point()+
+  geom_smooth(method = "lm")
+----------------------------------------
 
 
 ###나중에 할거
