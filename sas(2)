@@ -1,1 +1,71 @@
+options validvarname=any;
+libname h "C:\Users\OWNER\Downloads\실습자료";
 
+
+/*t30 3번 답*/
+/*풀어본 결과*/
+proc import
+datafile="C:\Users\OWNER\Downloads\참고4_위암수술코드 (1).xlsx"
+out=hh_xlsx dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+data t30;
+set h.Nsc2_m30;
+위수술=substr(MCARE_DIV_CD,1,5);
+run;
+
+proc sql;
+create table t30_1 as
+select a.*, b.구분
+from t30 as a
+join hh_xlsx as b on
+a.위수술=b.코드;
+quit;
+
+/*답*/
+proc import
+datafile="C:\Users\OWNER\Downloads\참고4_위암수술코드 (1).xlsx"
+out=hh_xlsx dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc sql;
+create table t30_1 as
+select a.*
+from h.Nsc2_m30 as a
+join hh_xlsx as b on
+substr(a.MCARE_DIV_CD,1,5)=substr(b.코드,1,5);
+quit;
+
+proc sort data=t30_1 out=t30_12 nodupkey;
+by rn_key;
+run;
+
+
+
+/*t30 4번*/
+/*풀어본 결과*/
+data t30_4;
+set h.Nsc2_m30;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015";
+run;
+
+/*답*/
+proc sql;
+create table t30_e2 as 
+select a.*,substr(a.MDCARE_STRT_DT,1,4) as year,b.구분
+from h.Nsc2_m30 as a
+join hh_xlsx as b on
+substr(a.MCARE_DIV_CD,1,5)=substr(b.코드,1,5)
+where "2010"<=calculated year<="2015";
+quit;
+
+proc sort data=t30_e2 out=t30_em nodupkey;
+by rn_key 구분;
+run;
+
+proc freq data=t30_em;
+table year*구분/nopercent nocol norow;
+run;
