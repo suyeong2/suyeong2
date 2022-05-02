@@ -1,3 +1,5 @@
+options validvarname=any;
+
 data example;
 input sex poster ni @@;
 cards;
@@ -246,5 +248,53 @@ run;
 
 
 
-/*일반화 선형모형*/
+/*이항자료에 대한 일반화 선형모형*/
+data glm;
+input snoring disease total;
+cards;
+0 24 1379  /*코골이 심장질환(예) 심장질환(예+아니오=total)*/
+2 35 638
+4 21 213
+5 30 254
+;
+run;
+
+proc genmod data=glm;
+model disease/total=snoring/dist=bin link=identity;
+run;
+
+proc genmod data=glm;
+model disease/total=snoring/dist=bin link=identity;
+output out=a1 pred=pred;
+run;
+
+proc genmod data=glm;
+class snoring;    /*classs는 숫자로 코딩되었지만 숫자형이 아닌 문자형으로 나타내주는 방법*/
+model disease/total=snoring/dist=bin link=identity;
+output out=a1 pred=pred;
+run;
+
+/*한개 적게 나온다..?*/
+
+/*type3를 먼저 보고..?*/
+proc genmod data=glm;
+model disease/total=snoring/dist=bin link=identity type3;
+output out=a1 pred=pred;
+run;
+
+/*참조변주..?바꾸기*/
+proc genmod data=glm;
+class snoring(ref="2");  /*2대비 4이면 4대비*/
+model disease/total=snoring/dist=bin link=identity type3;
+output out=a1 pred=pred;
+run;
+
+/*이분화*/
+data glm2;
+input snoring disease total;
+cards;
+0 24 1379
+1 86 1105
+;
+run;
 
