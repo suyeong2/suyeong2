@@ -269,7 +269,7 @@ output out=a1 pred=pred;
 run;
 
 proc genmod data=glm;
-class snoring;    /*classs는 숫자로 코딩되었지만 숫자형이 아닌 문자형으로 나타내주는 방법*/
+class snoring;    /*classs는 숫자로 코딩되었지만 숫자형이 아닌 문자형으로 나타내주는 방법(범주로 인식)*/
 model disease/total=snoring/dist=bin link=identity;
 output out=a1 pred=pred;
 run;
@@ -298,3 +298,30 @@ cards;
 ;
 run;
 
+
+data glm;
+input snoring disease total;
+cards;
+0 24 1379 
+2 35 638
+4 21 213
+5 30 254
+;
+run;
+
+proc genmod data=glm;
+model disease/total=snoring/dist=bin link=logit;
+run;
+
+proc genmod data=glm;
+class snoring;  
+model disease/total=snoring/dist=bin link=logit;
+output out=a2 pred=pred;
+run;
+
+/*알파가 바뀌면서 확률을 맞춰줘서 ref가 뭐로 잡히든 상관 없다*/
+proc genmod data=glm;
+class snoring(ref="0");  
+model disease/total=snoring/dist=bin link=logit;
+output out=a2 pred=pred;
+run;
