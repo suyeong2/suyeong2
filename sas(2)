@@ -69,3 +69,25 @@ run;
 proc freq data=t30_em;
 table year*구분/nopercent nocol norow;
 run;
+
+
+
+/*T30 약제*/
+data t30_5;
+set h.Nsc2_m30;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015" and upcase(substr(MCARE_DIV_CD,1,5))="13900";
+run;
+
+
+
+
+
+
+
+
+
+
+
+
+
