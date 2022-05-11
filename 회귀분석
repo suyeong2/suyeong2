@@ -465,4 +465,27 @@ lines(x,y2,col="blue")
 
 
 
+------------------------------
+##다중공선성
+library(car)
+head(airquality)
+model1<-lm(Ozone~Solar.R+Wind+Temp+Month,airquality)
+summary(model1) 
+#moth는 음수지만 p값이 0.05이상이므로 기울기가 0이다. 
+#month는유의한 확률이 아니라할쉿다?
+
+#VIF(car불러와야 계산된다)
+vif(model1)
+
+##선형성
+crPlots(model1)
+#점선이
+#곡선이
+#wind는 일차식이 아닌 이차식을 넣어보자?
+model2<-lm(Ozone~Solar.R+Wind+Temp+Month+I(Wind^2),airquality)
+summary(model2)
+vif(model2)
+crPlots(model2)
+
+
 
