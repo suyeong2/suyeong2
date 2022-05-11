@@ -325,3 +325,55 @@ class snoring(ref="0");
 model disease/total=snoring/dist=bin link=logit;
 output out=a2 pred=pred;
 run;
+
+
+/*이항분포 프로빗*/
+ex)
+proc genmod data=crab;
+model satell=width/dist=poi link=probit;
+run;
+
+proc import
+datafile="C:\Users\OWNER\Downloads\crab.xlsx"
+out=crab dbms=xlsx replace;
+sheet="crab";
+run;
+
+proc genmod data=crab;
+model satell=width/dist=poi link=log;
+run;
+
+data crab2;
+input width cases stell @@;
+log_case=log(cases);/*오프셋이기 때문에 변환?*/
+cards;
+/*숫자등으르으ㅡ를으*/
+;
+run;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
