@@ -333,6 +333,7 @@ proc genmod data=crab;
 model satell=width/dist=poi link=probit;
 run;
 
+/*포아송*/
 proc import
 datafile="C:\Users\OWNER\Downloads\crab.xlsx"
 out=crab dbms=xlsx replace;
