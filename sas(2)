@@ -83,6 +83,35 @@ run;
 
 
 
+data ex;
+set h.Nsc2_m60;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015" and GNL_NM_CD="423700ATB";
+a=1;
+run;
+
+proc sort data=ex out=ex1 nodupkey;
+by RN_INDI year;
+run;
+
+proc sql;
+create table ex2 as
+select a.year, sum(a) as a
+from ex1 as a 
+group by year;
+
+create table ex3 as
+select b.year, count(RN_KE) as 환자수
+from ex1 as b
+group by year;
+
+create table ex4 as
+select a.year, b.환자수, round(s/환자수,0.01)as 평균명세서
+from ex2 as a
+join ex3 as b on
+a.year=b.year;
+quit;
+
 
 
 
