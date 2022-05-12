@@ -81,7 +81,7 @@ run;
 
 
 
-
+/*T60(약제) 2번*/
 
 data ex;
 set h.Nsc2_m60;
