@@ -354,10 +354,40 @@ run;
 
 
 
+/*로지스틱*/
+proc import
+datafile="C:\Users\OWNER\Downloads\crab.xlsx"
+out=crab dbms=xlsx replace;
+sheet="crab";
+run;
+
+data crab2;
+set crab;
+if satell=0 then y=0;
+else if satell>0 then y=1;
+else y=9999;
+run;
+
+proc freq data=crab2;
+table y;
+run;
+
+proc logistic data=crab2;
+model y(event='1')=width/covb lackfit;
+run;
 
 
+/*등딱지가 20일때 */
+proc logistic data=crab2;
+model y(event='1')=width/covb lackfit;
+run;
 
+/*weight와 위성이 암게의 무게와 위성이 있고 없고의 관련성이 있을까?(양, 음의 관령성 또는 관련성 없고)*/
+/*weight가 3키로일때 신뢰구간*/
 
+proc logistic data=crab2;
+model y(event='1')=weight/covb;
+run;
 
 
 
