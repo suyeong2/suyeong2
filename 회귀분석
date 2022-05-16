@@ -457,7 +457,7 @@ lines(x,y2,col="blue")
 #회귀분석은 X->Y x에 의해 결정된다.
 #선형식이 추정된다. 결정계수, 기울기 가설검정 모형을 적합성검증도 가능
 
-정규성맍ㄱX
+정규성만족X
 평균이 아니라 중위수를 설명하는 모형을 세우자
 .
 .
@@ -488,4 +488,76 @@ vif(model2)
 crPlots(model2)
 
 
+##변수선탭과 모형선택
+#모든 가능한 조합
+if(!require(mlbench)) install.pages("mlbench"); library(mlbench)
+if(!require(leaps)) install.packages("leaps"); library(leaps)
+data("BostonHousing")
 
+m1 <- regsubsets(medv ~., data=BostonHousing)
+summary(m1)
+
+plot(m1, scale="adjr2")
+#수정된이라는 뜻(수정된 결정계수)
+#모수의 수 독리변수의 수가 늘어날수록 
+
+plot(m1, scale="bic")
+#scale기준으로 
+
+
+##전진선택법(아무것도 없는거에서 중요한거 하나씩 넣기/옛날 방법)
+#상수만 포함된 모형
+model0 <- lm(medv ~1, data=BostonHousing)
+add1(model0, scope = ~ crim + zn + indus + chas + nox + rm +
+       age + dis + rad + tax + ptratio + b + lstat, test="F")
+#f값이 클수록 유의한 변수
+#큰 변수 모형에 집어넣고 
+model1 <- lm(medv ~lstat, data=BostonHousing)
+add1(model1, scope = ~ crim + zn + indus + chas + nox + rm +
+       age + dis + rad + tax + ptratio + b + lstat, test="F")
+#그 다음 큰거 넣고
+model2 <- lm(medv ~lstat+rm, data=BostonHousing)
+add1(model2, scope = ~ crim + zn + indus + chas + nox + rm +
+       age + dis + rad + tax + ptratio + b + lstat, test="F")
+#차례로 큰거 넣기
+#통계적으로 유의미한 값이 나올때까지..?
+model11 <- lm(medv ~lstat+rm+ptratio+dis+nox+chas+b+zn+crim+rad+tax, data=BostonHousing)
+add1(model11, scope = ~ crim + zn + indus + chas + nox + rm +
+       age + dis + rad + tax + ptratio + b + lstat, test="F")
+
+#쉽게 사용하는 방법(step함수 사용)
+m2 <- step(lm(medv~1, BostonHousing), scope = ~ crim + zn + indus + chas + nox + rm +
+             age + dis + rad + tax + ptratio + b + lstat,direction="forward")
+
+
+
+##후진제거법(다 넣고 차이가 없는(중요하지 않은거) 변수 하나씩 빼기/옛날방법)
+model0 <- lm(medv ~., data=BostonHousing)
+drop1(model0, scope = ~ crim + zn + indus + chas + nox + rm +
+        age + dis + rad + tax + ptratio + b + lstat, test="F")
+#Sum of Sq가 작은거부터 뺀다
+model1 <- lm(medv ~.-age, data=BostonHousing)
+drop1(model1, scope = ~ crim + zn + indus + chas + nox + rm +
+        dis + rad + tax + ptratio + b + lstat, test="F")
+
+#전진선택법과 후진선택법 결과 다르기도함(뭐가 더 좋은지는 모름)
+#전진석택법 변수가 적게 선택되는 경향 있음
+#후진은 전진석택보다 변수가 좀 더 남아있는 경향이 있
+#(통계적측면에선 후진제거법 더 선호함)
+
+##단계적 선택법(전진, 후진 고려된거?)
+#전진선택끝내면 후진 돌림 후진 끝나면 전진 수렴할떄까지 돌다가 멈춤
+#시간이 오래 걸리지만 적당한 변수 잘 선택하는 경향 있다.
+
+#수정된 결정계수
+
+
+#변수가 많을수록 새로운 값 예측하기 어려움
+#변수가 적음 쉽지만,,,?
+
+
+
+###다음시간 수업 
+##회귀진단
+#지랫대점 이상점 영향점 제거하는게 더 좋은 모형
+#데이터의 질이 않좋은거 제거하자 
