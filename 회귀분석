@@ -561,3 +561,94 @@ drop1(model1, scope = ~ crim + zn + indus + chas + nox + rm +
 ##회귀진단
 #지랫대점 이상점 영향점 제거하는게 더 좋은 모형
 #데이터의 질이 않좋은거 제거하자 
+
+
+
+##레버리지(지렛대점)
+#모형에 있어도 큰 지장 없지만
+#지렛대점이 잇다는 것은 근처에 유사한 값이 있을 수도 있어 조사해봐야함
+#지렛대점 확인
+pubs <- data.frame(pubs=c(10,25,40,55,70,85,100,500),
+                   deaths=c(1043.822,2086.934,2951.086,3992.459,5088.003,6095.645,6923.497,10000),
+                   name=1:8)
+
+plot(pubs$pubs, pubs$deaths, pch=16)
+text(pubs$pubs, pubs$deaths, labels=pubs$name, pos=4)
+abline(lm(deaths~pubs, data=pubs), col="blue", lwd=2)
+
+fit.pub <- lm(deaths~pubs, data=pubs)
+out<-influence(fit.pub)#influence영향력정도를 계산해줌
+out$hat#모자행렬
+out$hat>2*mean(out$hat)
+#모자행렬이 평균의 두배보다 큰지 안큰지/모자 행렬이 평균보다 크면 지렛대점이라고 본다
+hatvalues(fit.pub)#(지렛대점 확인)
+
+
+##이상점
+#이상점확인
+library(car)#다중공선성확인 VIF값 구하려면 필요
+outlierTest(fit.pub)#8번째 이 값이 이상점같아?(이상점 알려줌)
+#이상점 제거해주는게 좋음
+
+
+
+##영향점
+#이 점이 있냐 없냐에 따라 모형에 영향을 미치는 것 
+#영향력의 정도 수치화
+#영향점확인
+rstudent(fit.pub)*sqrt(hatvalues(fit.pub)/(1-hatvalues(fit.pub)))
+dffits(fit.pub)
+
+#한번에 확인
+influencePlot(fit.pub)#3가지 한번에 확인 가능하다.
+
+#> influencePlot(fit.pub)
+#StudRes       Hat      CookD
+#1  -1.627653 0.1813863  0.2302244
+#7   1.681272 0.1256287  0.1556728
+#8 -54.528398 0.9693020 94.5671657
+
+#StudRes 이상치(절댓값이 2를 넘어가면 이상치가 나올 확률이 높다)
+#Hat 지렛대점(x축hat-values위에수직선 두번쨰 선을 너어가면 지렛대점/8)
+#CookD 영향점(동그라미가 크면 영향점이 크다 영향점에서 다른 애들 보다 큰게 큰거)
+
+
+fit.pub2 <- lm(deaths~pubs, data=pubs[-8,])
+#이상치 영향점 지렛대점에 해당하는 점 하나를 뺀 값
+influencePlot(fit.pub2)
+summary(fit.pub2)#거의 100% 설명한다
+summary(fit.pub)
+#평균적인 값을 잘 맞추는 것이 중요
+
+
+plot(fit.pub)
+#엔터쳐서 나오는 순서대로
+#잔차도표를 확인할수있는 그림
+#qqplot 정규성여부 확인
+#등분산성
+#지렛대점 이상점 영향점
+
+
+#이상점 영향점은 모형에서 빼기
+data("airquality")
+head(airquality)
+model1<-lm(Ozone~Solar.R+Wind+Temp, data=airquality)
+summary(model1)
+
+
+#지렛대점
+which(hatvalues(model1)>2*mean(hatvalues(model1)))
+#9 18 21 48 
+#7 14 17 30
+
+#이상점
+outlierTest(model1)
+#117번쨰 값 이상
+#이 117번 빼는 방법 48도 빼는 것
+model11<-lm(Ozone~Solar.R+Wind+Temp, data=airquality[-117,])
+summary(model11)
+model12<-lm(Ozone~Solar.R+Wind+Temp, data=airquality[-c(48,117),])
+summary(model12)
+#계속 이상치를 제거하다보면 중요한 점이 빠질 수 있음
+#두번이나 세번정도 반족수행해서 영향점 이상점 나오면 제거 
+
