@@ -391,7 +391,52 @@ run;
 
 
 
+proc import
+datafile="C:\Users\OWNER\Downloads\crab.xlsx"
+out=crab dbms=xlsx replace;
+sheet="crab";
+run;
 
+data crab2;
+set crab;
+if satell=0 then y=0;
+else if satell>0 then y=1;
+else y=9999;
+run;
+
+proc freq data=crab2;
+table color;
+run;
+
+proc freq data=crab2;
+table spine;
+run;
+
+
+/*color가 2일때*/
+proc logistic data=crab2;
+class color(ref="4")/param=ref;/*(ref="4")/param=ref;로 잡는 이유는 각각에 변수에 대해 ref(참조변주?)잡아주고 옵션을 넣어야 원하는 값이 나온다?*/
+model y(event='1')=color/covb;
+run;
+
+
+/*spine=2 일때*/
+proc logistic data=crab2;
+class spine(ref="1")/param=ref;
+model y(event='1')=spine/covb;
+output out=aa pred=p lower=low upper=up/*output해서 본 결과는 없는 안한것과 소수 4번째 자리에서 차이가 난다*/
+run;
+
+
+/*모형적합도*/
+proc genmod data=crab;
+model y/n=width/dist=binomial link=logit;
+run;
+
+proc logistic data=crab;
+model y(event="1")width/lackfit;/*lackfit 적합도 검정 결과를 보여주는 함수*/
+run;
+/*logistic을 더 많이 사용한다*/
 
 
 
