@@ -652,3 +652,105 @@ summary(model12)
 #계속 이상치를 제거하다보면 중요한 점이 빠질 수 있음
 #두번이나 세번정도 반족수행해서 영향점 이상점 나오면 제거 
 
+
+
+
+#####################과제와 비슷한 예시#####################
+m<-read.csv("C:/Users/OWNER/Downloads/manhattan.csv")
+
+library(car)
+names(m)
+dim(m)
+model0<-lm(rent~.,data=m[,2:17])
+summary(model0)
+##모형 설명력:0.8179
+
+##1.다중공선성
+vif(model0)#다중공선성 존재 x(문제 없음),값이 1,2같은 작은 값들이기에
+
+##2.모형선택(변수선택)
+if(!require(leaps)) install.packages("leaps"); library(leaps)
+
+m1 <- regsubsets(rent~.,data=m[,2:17])#변수 자동으로 집어넣음/베스트조합 찾아줌
+
+summary(m1)
+summary(m1)$adjr2 #수정된 결정계수로?/설명력이 높은것을 찾음?
+#8개가 나온 값 중에 8번째 제일 큰 값이?
+
+summary(m1)$bic #bic
+
+summary(m1)$which[8,]#8번쨰 세웠던 변수들 알려줌
+#나온 값 중에 false인 값이 영향을 준다?
+
+#true인 값만 넣기
+model1<-lm(rent~bathrooms+size_sqft+floor+
+             building_age_yrs+neighborhood,data=m)
+summary(model1)
+
+summary(model0)
+summary(model1)#변수 몇개를 선택하는 것이 좋다.
+
+#방향성을 중요시 해야함
+#+,-로/층수에서 +인 것이 위로 올라갈수록 가격이 올라간다.
+#건물 나이에서 -는 신축일수록 비싸다
+
+influencePlot(model1)
+#nan은 0에서 0을 나눌떄라 이 값은 빼느게 좋음
+#hat이 크다는건 지랫대점/있어도 되지만 근처에 값이 많지 않을 경우 빼는게 좋음
+
+#6개의 이상한 값 빼기
+m1<-m[-c(5,185,1497,1960,2469,2737),]#항상 일치하지 않음(5번쨰를 빼도 남아있을 수 있음)
+dim(m)
+dim(m1)
+
+model2<-lm(rent~bathrooms+size_sqft+floor+
+             building_age_yrs+neighborhood,data=m1)
+
+summary(model2)#0.8233 설명력 높아짐
+summary(model1)#0.8169
+
+influencePlot(model2)
+#638,2671
+#CookD에서 2269,2671은 영향점?
+
+#의심되는 데이터
+#458 638 2269 2671추가하기
+
+m2<-m[-c(5,185,1497,1960,2469,2737,453,638,2269,2671),]
+ 
+model3<-lm(rent~bathrooms+size_sqft+floor+
+             building_age_yrs+neighborhood,data=m2)
+
+#모형 설명력 높아짐
+summary(model3)#0.8262
+summary(model2)#0.8233/이상점 지랫대점 영향점 뺸 결과
+summary(model1)#0.8169/모두다 넣음 값
+summary(model0)#0.8179
+#두세번 하는 것이 좋음
+
+
+
+#정규성
+shapiro.test(model3$residuals)
+#정규성 만족하지 않는다
+boxCox(model3)
+#람다값은 0에 가까운수?
+model4<-lm(rent^-0.1~bathrooms+size_sqft+floor+
+             building_age_yrs+neighborhood,data=m2)
+shapiro.test(model4$residuals)
+#정규성 만족하지 않는다
+
+
+#독립성
+durbinWatsonTest(model3)
+
+
+#등분산성
+ncvTest(model3)
+spreadLevelPlot(model3)
+
+
+#확인해보는게 좋음/앞은 실제값 뒤에는 예측값/두 값이 얼마나 유사한지 확인할 수 있다.
+#로그변환 시키면 더 좋을 것 같다~~~~~~~
+lot(m2$rent,model3$fitted.values)
+
