@@ -441,9 +441,88 @@ run;
 
 
 
+/*다중로지스틱회귀*/
+proc import
+datafile="C:\Users\OWNER\Downloads\crab.xlsx"
+out=crab dbms=xlsx replace;
+sheet="crab";
+run;
+
+data crab2;
+set crab;
+if satell=0 then y=0;
+else if satell>0 then y=1;
+else y=9999;
+run;
+
+proc freq data=crab2;
+table y;
+run;
+
+proc genmod data=crab2;
+class color;
+model y=color width/dist=bin link=logit type3;
+run;
+
+
+/*width 더 작은결과 나온다?/최종모형*/
+proc genmod data=crab2;
+class color spine;
+model y=color spine width/dist=bin link=logit type3;
+run;
+
+proc genmod data=crab2;
+class color spine;
+model y=color spine weight/dist=bin link=logit type3;
+run;
 
 
 
+/*모형 수정?보정?*/
+data crab2;
+set crab;
+if satell=0 then y=0;
+else if satell>0 then y=1;
+else y=9999;
+run;
+
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color spine width spine color*width spine*width;
+run;
+
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color spine width color*width spine*width;
+run;
+
+/*유의하지 않은 순으로 뺀다. 최종은 width만 남는다*/
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=width;
+run;
+
+
+/*AIC,BIC기준으로  모형수정?보정? 해본다?*/
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color spine width color*width spine*width;
+run;
+/*유의하지않은 순으로 뺀다...?*/
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color spine width color*width;
+run;
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color spine width;
+run;
+/*이 기준에선 color까지 있는게 좋은거*/
+/*AIC,BIC많이씀*/
+proc logistic data=crab2;
+class color spine/param=ref ref=first;
+model y(event='1')=color width;
+run;
 
 
 
