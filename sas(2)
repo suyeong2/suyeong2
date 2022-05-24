@@ -136,3 +136,43 @@ data
 
 
 
+
+data ex10;
+set h.nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015" and substr(SICK_SYM1,1,3)="C16";
+run;
+
+proc sql;
+create table sx10_1 as
+select a.*,input(a.year,4.)-input(b.bth_yyy,4.) as 연령
+from ex10 as a
+join h.nsc2_bnd as b on
+a.rn_indi=b.rn_indi;
+quit;
+
+data ex10_2;
+set ex10_1;
+if 0<=연령<50 then age_c=1;
+else if 50<=연령<60 then age_c=2;
+else if 0<=연령 then age_c=3;
+else age_c=99999;
+run;
+
+proc freq data=ex10_2;
+table age_c*year/out=r1 norow nocol nopercent;
+run;
+
+proc sort data=r1;
+by age_c;
+run;
+
+proc transpose data=r1 out=r1_t prefix=rn_;
+id year;
+by age_c;
+var count;
+run;
+
+proc sort data=ex10_2 out=ex10_2_1  nodupkey;
+by rn_indi;
+run;
