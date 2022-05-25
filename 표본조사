@@ -526,7 +526,80 @@ run;
 
 
 
+--------------------------------------------------------------------------------
 
+/*obestiy실습*/
+proc import
+datafile="C:\Users\OWNER\Downloads\obesity.csv"
+out=obesity dbms=csv replace;
+getnames=yes;
+run;
+
+data obesity2;
+set obesity;
+체중감소량=BEFORE_W-AFTER_W;
+if 체중감소량^=. and BEFORE_W-AFTER_W<5 then event=0;
+else if BEFORE_W-AFTER_W>=5 then event=1;
+else event=9999;
+run;
+
+proc freq data=obesity2;
+table event;
+run;
+
+/*1번 단순로지스틱*/
+proc logistic data=obesity2;
+class method(ref='0')/param=ref ref=first;
+model event(event='1')=method/covb lackfit;/*적합도검정*/
+output out=result pred=p lower=low upper=upp;
+run;
+/*회귀계수 양수-> 통계적으로 유의하게 0번치료법에 비해 1번 치료법이 채중감소를 많이 시키다*/
+/*1번 치료법이 가능성이 높다 설명력을 봤을때 귀무가설 기각 불가 /설명력 0.847*/
+
+
+/*2번 다중로지스틱회귀*/
+/*성별과 연령을 보정한 5kg 이상 감소 가능성에 대한 해석
+남성(1)이면서 25세인 1번 치료법의 5kg이상 감소할 확률 및 신뢰구간 추정
+모형적합도(H-L test, C-statistics)*/
+/*3개다 관령성 없다*/
+/*methodfh 고정했을때? ~~~~이걸로 하면 안된다 다른거 해야함*/
+proc logistic data=obesity2;
+class method(ref='0') sex/param=ref ref=first;;
+model event(event='1')=method sex age /covb lackfit;
+output out=result pred=p lower=low upper=upp;
+run;
+
+
+/*3번 with 교호작용*/
+/*교호작용을 고려한 method 비교*/
+proc logistic data=obesity2;
+class method(ref='0') sex/param=ref ref=first;;
+model event(event='1')=method sex age method*sex method*age sex*age;
+run;
+/*성별과 연령의교호작용이 유의했다면*/
+/*여성에서의 추정지는2.9795
+남성에서는 -2.~익스퍼레이션?한 값이*/
+/*여성에선 1번 치료법이 더 효과적이지만 남성에선 0번 치료법이 더 효과적이다*/
+
+
+
+/*4번*/
+/*AIC를 기준으로 최적의  모형 선정(작은게 좋은거)*/
+proc logistic data=obesity2;
+class method(ref='0' )sex/param=ref ref=first;
+model event(event='1')=age;
+run;
+/*full model:14.046
+model event(event='1')=method sex age method*sex method*age sex*age;
+method*age 제외:12.049
++method*sex 제외:10.050
++sex*age제외:8.072
++sex 제외:6.075
++method 제외:4.080
+age만 남는게 AIC기준으로 최적의모형*/
+
+
+/*연령이 낮을수록 감소량 높다?*/
 
 
 
