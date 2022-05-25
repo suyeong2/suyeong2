@@ -754,3 +754,4 @@ spreadLevelPlot(model3)
 #로그변환 시키면 더 좋을 것 같다~~~~~~~
 lot(m2$rent,model3$fitted.values)
 
+a10_na=na.omit(a10)#결측치 지우기
