@@ -602,6 +602,80 @@ age만 남는게 AIC기준으로 최적의모형*/
 /*연령이 낮을수록 감소량 높다?*/
 
 
+--------------------crab 데이터 실습
+proc import
+datafile="C:\Users\OWNER\Downloads\crab.xlsx"
+out=crab dbms=xlsx replace;
+sheet="crab";
+run;
+
+data crab2;
+set crab;
+if satell=0 then y=0;
+else if satell>0 then y=1;
+else y=9999;
+run;
+
+proc freq data=crab2;
+table color;
+run;
 
 
+/*crab y=위성의 수(satell)*/
+proc genmod data=crab2;
+class color spine/param=ref ref=first;
+model satell=weight/dist=poi link=log covb;
+output out=result pred=p lower=low upper=up;
+run;
+/*유의한 관련성이 있고, 포아송을 따른다*/
+/*무게가 1 무거워질때  위성의 평균수는 1.8배 많아진다*/
+/*디젤롲 최소가ㅏ 20 최대 33.5 이 값을 벗어난 값은 외삽? 이 값은 쓰지 않는다*/
+
+
+/*width 1번*/
+/*위성의 수와 width
+-23일때의 평균 위성의 수
+-24일때의 평균 위성의 수
+-24일때이 평균 위성의 수/23일때의 평균 위성의 수(비 확인)*/
+/*코드 모름*/
+proc genmod data=crab2;
+class color spine/param=ref ref=first;
+model satell=width/dist=poi link=log covb;
+output out=result pred=p lower=low upper=up;
+run;
+/*등딱지가 넓어질수록 위성수 증가한다
+넓이가 1센티 증가할때마다 위성의 수는 1.178배만큼 증가한다*/
+
+
+/*color 2번*/
+/*위성이 수와 color(참조범주1)
+-2일때의 평균 위성의 수
+-1일때의 평균 위성의 수
+-2일때의 평균 위성의 수/1일때의 평균 위성의 수*/
+proc genmod data=crab2;
+class color(ref='1') spine/param=ref ref=first;
+model satell=color/dist=poi link=log covb;
+output out=r2 pred=p lower=low upper=up;
+run;
+/*1번색에 비해 2벊색 유의한 차이 없음
+1번과 2번 유의한 차이 있다?
+1번과 3번 유의한 차이 있다?
+1번색에 비해 3,4번이 평균적 위성의 수 감소하겠다*/
+
+
+/*spine 3번*/
+/*위성의 수와 spine(참조범주1)
+-3일때의 평균 위성의 수
+-1일때의 평균 위성의 수
+-3일때의 평균 위성의 수/1일떄의 평균 위성의 수*/
+proc genmod data=crab2;
+class color spine/param=ref ref=first;
+model satell=spine/dist=poi link=log covb;
+output out=result pred=p lower=low upper=up;
+run;
+
+proc freq data=crab2;
+table color spine;
+run;
+/*과대산포 없음*/
 
