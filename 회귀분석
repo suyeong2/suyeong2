@@ -755,3 +755,123 @@ spreadLevelPlot(model3)
 lot(m2$rent,model3$fitted.values)
 
 a10_na=na.omit(a10)#결측치 지우기
+
+
+
+library(car)
+body <- read.csv("https://scholar.harvard.edu/files/gerrard/files/nhanes_body.txt")
+attach(body)
+dim(body) # 총 8,602개의 자료, 5개의 변수
+head(body)
+
+boxplot(height~age,body)#나이에 따라 키가 어떻게 되는가에 대한 그래프
+library(ggplot2)
+ggplot(data=bady)
+
+
+
+
+
+
+##차수 높이기
+#2차 선형모형
+fit.l2 <- lm(height~age+I(age^2))
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+points(age, fit.l2$fitted.values, pch=16, cex=0.1)
+#검정선과 회색그림이 어떤가
+
+#3차 선형모형
+fit.l3 <- lm(height~age+I(age^2)+I(age^3))
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+points(age, fit.l3$fitted.values, pch=16, cex=0.1)
+
+#4차 선형모형
+fit.l4 <- lm(height~age+I(age^2)+I(age^3)+I(age^4))
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+points(age, fit.l4$fitted.values, pch=16, cex=0.1)
+
+#5차 선형모형
+fit.l5 <- lm(height~age+I(age^2)+I(age^3)+I(age^4)+I(age^5))
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+points(age, fit.l5$fitted.values, pch=16, cex=0.1)
+##차수가 높아질수록 실제자료를 잘 설명명하는 식이 추정된다
+
+###차수가 높아지면 발생하는 문제점
+##차수가 높아지면 높아질수록 가운데 데이터는 설명을 잘 하지만 끝에 데이터는 설명을 잘 못함
+##보통 3차로 끝냄
+
+##3차식으로 모델링하는 방법
+#구간에 대해서 3차로 하게 쪼갠다
+
+
+
+detach(body)
+
+youths <- body[body$age<18,]# 성장 중인 것으로 기대되는 사람 (18세 미만)
+adults <- body[body$age>=18,]# 성장이 끝난 것으로 기대되는 사람 (18세 이상)
+
+fit.youths.l3 <- lm(height~age+I(age^2)+I(age^3), data=youths)
+#3차식을 추정한 것
+summary(fit.youths.l3)
+#0.9312
+
+plot(height~age, data=youths, pch=16, col="gray")
+points(youths$age, fit.youths.l3$fitted.values, pch=16)
+#검정점은 예측점 
+#가운데 점이 전체 자료의 93퍼 설명하는 것
+
+fit.adults.l3 <- lm(height~age+I(age^2)+I(age^3), data=adults)
+plot(height~age, data=adults, pch=16, col="gray")
+points(adults$age, fit.adults.l3$fitted.values, pch=16)
+
+
+
+attach(body)#변수명만 적어도 된다
+fit.spline <- smooth.spline(height ~ age, nknots=4)
+fit.spline#lambda= 9.717504e-05
+# 여기서 nknots는 매듭점이라 한다. 
+#nknots가 많을수록...?
+#너무 많은 좋지 않다
+#smooth.spline부드러운 곡선 그려줌(찾는다?)
+
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+lines(fit.spline, pch=16, lwd=2)
+
+
+
+# 커널 회귀를 이용하면 비선형 자료에 부드러운 함수를 적합시켜준다
+smooth.height <- ksmooth(age, height, bandwidth=4, kernel='normal')
+# bandwidth : 평활량 값 (평활량이 클수록 부드럽고, 작을수록 거친 그림이 그려진다)
+#ksmooth폭의 정규분포가 따르게끔 부드러운 곡선 찾는다
+
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+lines(smooth.height, pch=16, lwd=2)
+
+
+
+#다항모형에 가까움
+##국소 회귀모형(중간중간 끊어서 잇는 데이터 예측값 (회귀식) 연결)
+#국소 가중선형회귀를 이용한 비모수적 방법으로도 부드러운 함수를 그릴 수 있다.
+# 여기서 f는 평활량 값 
+lowess.height <- lowess(height~age, f=0.5)
+plot(age, height, pch=16, col="gray", xlab="age", ylab="Height", main="Height vs Age")
+lines(lowess.height, lwd=2)
+#lowess
+
+
+
+##
+
+fit.spline <- smooth.spline(height ~ age, nknots=4)
+predict(fit.spline)
+#기존에 있는 데이터에 매칭되는 예측값 알려줌
+predict(fit.spline,data.frame(age=120))
+#120살일때의 예측 키? 알려줌
+#결과를 남들에게 설명하기 어려움
+#회귀모형처럼 선형식으로 적기 어려움
+#에측에 목적이 있다면 일차로 잘 하지 않음
+
+
+
+
+
