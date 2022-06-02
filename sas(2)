@@ -179,7 +179,7 @@ run;
 
 
 
-검진DB1번 연습 풀어본거 답X
+/*검진DB1번 연습 풀어본거 답X*/
 data ex1;
 set h.nsc2_m20;
 year=substr(MDCARE_STRT_DT,1,4);
@@ -210,4 +210,44 @@ run;
 
 proc ferq data=a1;
 table q_drk_frq_v90n;
+run;
+
+/*검진DB 1번 교수님답*/
+data t20_e1_1;
+set h.nsc2_m20;
+format first_d mmddyy10.;
+first_d=mdy(substr(MDCARE_STRT_DT,5,2),substr(MDCARE_STRT_DT,7,2),
+substr(MDCARE_STRT_DT,1,4));
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015" and upcase(substr(SICK_SYM1,1,3))="C16";
+run;
+
+proc sort data=t20_e1_1;
+by rn_indi MDCARE_STRT_DT;
+run;
+
+proc sort data=t20_e1_1 out=t20_p nodupkey;
+by rn_indi;
+run;
+
+proc sql;
+create table g1e_e1 as
+select a.*,b.Q_DRK_FRQ_V09N,b.hme_yyyymm,
+input(compress(b.hme_yyyymm||"01"),yymmdd10.) as 검진일자 format mmddyy10.,
+abs(intck('day', first_d, input(compress(b.hme_yyyymm||"01"), yymmdd10.) )) as diff
+from t20_p as a
+left join h.Nsc2_g1e_0915 as b on
+a.rn_indi=b.rn_indi;
+quit;
+
+proc sort data=g1e_e1;
+by rn_indi diff;
+run;
+
+proc sort data=g1e_e1 out =g1e_e1_2 nodupkey;
+by rn_indi;
+run;
+
+proc freq data=g1e_e1_2;
+table Q_DRK_FRQ_V09N;
 run;
