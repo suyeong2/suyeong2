@@ -251,3 +251,41 @@ run;
 proc freq data=g1e_e1_2;
 table Q_DRK_FRQ_V09N;
 run;
+
+
+
+
+
+
+팀플
+data ex1;
+set h.Nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2011"<=year<="2015" and upcase(substr(SICK_SYM1,1,4))="H810";
+run;
+
+proc sort data=ex1
+out=ex1_2 nodupkey;
+by form_cd year;
+run;
+
+proc freq data=ex1_2;
+table form_cd*year;
+run;
+
+
+proc sort data=ex1
+out=ex1_21 nodupkey;
+by RN_INST;
+run;
+proc freq data=ex1_21;
+table form_cd*year;
+run;
+
+
+
+
+
+
+
+
