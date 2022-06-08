@@ -261,28 +261,31 @@ run;
 data ex1;
 set h.Nsc2_m20;
 year=substr(MDCARE_STRT_DT,1,4);
-if "2011"<=year<="2015" and upcase(substr(SICK_SYM1,1,4))="H810";
+if "2011"<=year<="2015" 
+and upcase(substr(SICK_SYM1,1,4)) in ("H810","H811","812");
 run;
 
-proc sort data=ex1
-out=ex1_2 nodupkey;
-by form_cd year;
+proc sql;
+create table ex12 as
+select a.*, b.SGG_INST as 지역
+from ex1 as a
+left join h.Nsc2_inst as b on 
+a.RN_INST=b.RN_INST;
+quit;
+
+data ex13;
+set ex12;
+if form_cd="02" then 입원=1;
+else if form_cd="03" then 입원=0;
 run;
 
-proc freq data=ex1_2;
-table form_cd*year;
+proc sort data=ex13 out=ex13_1 nodupkey;
+by rn_inst;
 run;
 
-
-proc sort data=ex1
-out=ex1_21 nodupkey;
-by RN_INST;
+proc freq data=ex13_1;
+table year*입원;
 run;
-proc freq data=ex1_21;
-table form_cd*year;
-run;
-
-
 
 
 
