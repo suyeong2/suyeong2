@@ -287,7 +287,253 @@ proc freq data=ex13_1;
 table year*입원;
 run;
 
+options validvarname=any;
+libname h "C:\Users\ju011\Downloads\실습자료";
 
+
+/*진료DB T20*/
+/*1*/
+data t20_1;
+set h.Nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(SICK_SYM1,1,3))="C16"
+and "2010"<=year<="2015";
+run;
+
+proc freq data=t20_1;
+table year;
+run;
+
+data t20_12;
+set h.Nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(SICK_SYM1,1,3))="C16" or
+upcase(substr(SICK_SYM2,1,3))="C16"
+and "2010"<=year<="2015";
+run;
+
+proc freq data=t20_12;
+table year;
+run;
+
+
+/*2*/
+data t20_2;
+set h.nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(SICK_SYM1,1,3))="C16"
+and "2010"<=year<="2015";
+if upcase(substr(FORM_CD,1,2))="02";
+run;
+
+proc sort data=t20_2 out=t20_21 nodupkey;
+by year rn_indi;
+run;
+
+proc freq data=t20_21;
+table year;
+run;
+
+
+/*3*/
+
+data t20_3;
+set h.nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(SICK_SYM1,1,3))="C16"
+and "2010"<=year<="2015";
+run;
+proc sql;
+create table 
+;
+
+
+/*진료 T40*/
+/*1*/
+data t40_1;
+set h.nsc2_m40;
+year=substr(MDCARE_STRT_DT,1,4);
+if SICK_CLSF_TYPE in (1,2) and "2010"<=year<="2015"
+and substr(MCEX_SICK_SYM,1,3)="C16";
+run;
+proc sort data=t40_1 out=t40_11 nodupkey;
+by rn_key;
+run;
+proc freq data=t40_11;
+table year;
+run;
+proc sort data=t40_1 out=t40_12 nodupkey;
+by year rn_indi;
+run;
+proc freq data=t40_12;
+table year;
+run;
+
+/*2*/
+data t40_2;
+set h.nsc2_m40;
+year=substr(MDCARE_STRT_DT,1,4);
+if SICK_CLSF_TYPE and "2010"<=year<="2015"
+and upcase(substr(FORM_CD,1,2)) in ("02","03");
+run;
+proc sort data=t40_2 out=t40_21 nodupkey;
+by year rn_indi;
+run;
+proc freq data=t40_21;
+table rn_indi;
+run;
+
+
+
+
+/*T30*/
+
+
+/*2*/
+data t30_2;
+set h.nsc2_m30;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(CLA_CD,1,2))="02"
+and "2010"<=year<="2015";
+run;
+
+data t203;
+set h.nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if upcase(substr(SICK_SYM1,1,3))="C16"
+and "2010"<=year<="2015";
+run;
+
+proc sql;
+create table t30_21 as
+select a.*
+from t30_2 as a
+join t203 as b on
+a.rn_key=b.rn_key;
+quit;
+
+proc sql;
+create table cost as
+select year, sum(ATM) as 비용총합
+from t30_21
+group by year;
+quit;
+
+
+
+/*3*/
+
+proc import
+datafile="C:\Users\ju011\Downloads\참고4_위암수술코드.xlsx"
+out=hh_xlsx dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc sql;
+create table t30_1 as
+select a.*
+from h.Nsc2_m30 as a
+join hh_xlsx as b on
+substr(a.MCARE_DIV_CD,1,5)=substr(b.코드,1,5);
+quit;
+
+proc sort data=t30_1 out=t30_12 nodupkey;
+by rn_key;
+run;
+
+
+/*5*/
+proc import
+datafile="C:\Users\ju011\Downloads\참고4_위암수술코드.xlsx"
+out=s replace dbms=xlsx;
+sheet="Sheet1";
+run;
+
+proc sql;
+create table t30_e1 as
+select a.*
+from h.nsc2_m30 as a
+join s as b on
+substr(a.MCARE_DIV_CD,1,5)=substr(b.코드,1,5);
+quit;
+data t20_e1_1;
+set h.nsc2_m20;
+year=substr(MDCARE_STRT_DT,1,4);
+if "2010"<=year<="2015" and upcase(substr(SICK_SYM1,1,3))="C16";
+run;
+proc sql;
+create table t30_e3 as
+select a.*,b.year
+from t30_e1 as a
+join t20_e1_1 as b on 
+a.rn_key=b.rn_key;
+quit;
+proc sort data=t30_e3 out=t30_e3_u nodupkey;
+by rn_key;
+run;
+proc freq data=t30_e3_u;
+table year;
+run;
+
+
+/*6*/
+proc sql ;
+create table t30_e2 as
+select a.*
+from h.nsc2_m30 as a
+join s as b on 
+substr(a.MCARE_DIV_CD,1,5)=substr(b.코드,1,5);
+quit;
+data t40_E;
+set h.nsc2_m40;
+year=substr(MDCARE_STRT_DT,1,4);
+if SICK_CLSF_TYPE in (1,2) and "2010"<=year<="2015"
+and substr(MCEX_SICK_SYM,1,3)="C16";
+run;
+proc sort data=t40_E out=t40_e_u nodupkey;
+by rn_key;
+run;
+proc sql;
+create table t30_e4 as
+select a.*,b.year
+from t30_e2 as a
+join t40_e_u as b on 
+a.rn_key=b.rn_key;
+quit;
+proc sort data=t30_e4 out=t30_e4_u nodupkey;
+by rn_key;
+run;
+proc freq data=t30_e4_u;
+table year;
+run;
+
+
+
+/*T30/T60*/
+
+
+
+/*2*/
+data t36_2;
+set h.Nsc2_m30;
+
+
+
+
+/*3*/
+
+/*5*/
+
+
+
+/*요양*/
+
+
+/*4*/
+
+/*5*/
+
+/*6*/
 
 
 
