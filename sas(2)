@@ -538,3 +538,190 @@ set h.Nsc2_m30;
 
 
 
+
+
+
+/*팀플 1번*/
+
+libname data "e:\DU\빅데이터언어sas(2)\실습자료";
+/********************************/
+/*연도: 2011~2015*/
+/*상병코드: H810, H811, H812*/
+/*서식구분 : 의과입원, 의과외래*/
+/********************************/
+
+/*T1*/
+data m20;
+	set data.nsc2_m20;
+	year=substr(MDCARE_STRT_DT,1,4);
+	if  "2011"<=year<="2015" and upcase(substr(SICK_SYM1,1,4)) in ("H810","H811","H812") and FORM_CD in ("02","03");
+run;
+
+proc import datafile="E:\DU\빅데이터언어sas(2)\Team_project\지역.xlsx"
+out=area dbms=xlsx replace; 
+getnames=yes;
+run;
+
+data H810;
+	set m20;
+	if upcase(substr(SICK_SYM1,1,4)) in ("H810");
+run;
+
+/*total*/
+proc freq data=H810 NOPRINT;
+	table year/out=H810_year;
+run;
+
+proc transpose data=H810_year out=H810_year_t(drop=_LABEL_ _NAME_);
+	id year;
+	var count;
+run;
+
+/*입원/외래*/
+proc freq data=H810 NOPRINT;
+	table year*form_cd/out=H810_form;
+run;
+
+proc sort data=H810_form;
+by form_cd;
+run;
+
+proc transpose data=H810_form out=H810_form_t(drop=_LABEL_ _NAME_);
+	by form_cd;
+	id year;
+	var count;
+run;
+
+/*요양기관소재지*/
+proc sql;
+create table H810_hos as
+select a.*, substr(b.sgg_inst,1,2) as area_code , c.지역
+from H810 as a
+left join data.Nsc2_inst as b on
+a.rn_inst=b.rn_inst and a.year=b.STD_YYYY 
+left join area as c on 
+substr(b.sgg_inst,1,2)=put(c.code,2.);
+quit;
+
+proc freq data=H810_hos NOPRINT;
+	table year*지역/out=H810_3;
+run;
+
+proc sort data=H810_3;
+by 지역;
+run;
+
+proc transpose data=H810_3 out=H810_area_t(drop=_LABEL_ _NAME_);
+	by 지역;
+	id year;
+	var count;
+run;
+
+data H810_sum;
+format 구분 $10.;
+	set H810_year_t H810_form_t H810_area_t;
+	if form_cd=" " and 지역=" " then 구분="TOTAL";
+	else if  form_cd^=" " then 구분=form_cd;
+	else if 지역^=" " then 구분=지역;
+	drop form_cd  지역 ;
+run;
+
+
+%macro t1(sick,sick2);
+data &sick.;
+	set m20;
+	if upcase(substr(SICK_SYM1,1,4)) &sick2;
+run;
+
+/*total*/
+proc freq data=&sick. NOPRINT;
+	table year/out=&sick._year;
+run;
+
+proc transpose data=&sick._year out=&sick._year_t(drop=_LABEL_ _NAME_) prefix=&sick._;
+	id year;
+	var count;
+run;
+
+/*입원/외래*/
+proc freq data=&sick. NOPRINT;
+	table year*form_cd/out=&sick._form;
+run;
+
+proc sort data=&sick._form;
+by form_cd;
+run;
+
+proc transpose data=&sick._form out=&sick._form_t(drop=_LABEL_ _NAME_) prefix=&sick._;
+	by form_cd;
+	id year;
+	var count;
+run;
+
+/*요양기관소재지*/
+proc sql;
+create table &sick._hos as
+select a.*, substr(b.sgg_inst,1,2) as area_code , c.지역
+from &sick. as a
+left join data.Nsc2_inst as b on
+a.rn_inst=b.rn_inst and a.year=b.STD_YYYY 
+left join area as c on 
+substr(b.sgg_inst,1,2)=put(c.code,2.);
+quit;
+
+proc freq data=&sick._hos NOPRINT;
+	table year*지역/out=&sick._3;
+run;
+
+proc sort data=&sick._3;
+by 지역;
+run;
+
+proc transpose data=&sick._3 out=&sick._area_t(drop=_LABEL_ _NAME_) prefix=&sick._;;
+	by 지역;
+	id year;
+	var count;
+run;
+
+data &sick._sum;
+format 구분 $10.;
+	set &sick._year_t &sick._form_t &sick._area_t;
+	if form_cd=" " and 지역=" " then 구분="000_TOTAL";
+	else if  form_cd^=" " then 구분="00"||substr(form_cd,2,1);
+	else if 지역^=" " then 구분=지역;
+	drop form_cd 지역  ;
+run;
+
+%mend;
+%t1(H810, in ("H810") ); %t1(H811, in ("H811") ); %t1(H812,in ("H812")); %t1(H81,in ("H810","H811","H812"));
+
+proc sql;
+create table T1_j1 as
+select coalesce(a.구분, b.구분) as 구분, a.*, b.*
+from h810_sum as a
+full join h811_sum as b on
+a.구분=b.구분
+group by calculated 구분;
+quit;
+
+proc sql;
+create table T1_j2 as
+select coalesce(a.구분, b.구분) as 구분, a.*, b.*
+from T1_j1 as a
+full join h812_sum as b on
+a.구분=b.구분
+group by calculated 구분;
+quit;
+
+proc sql;
+create table T1_FINAL as
+select coalesce(a.구분, b.구분) as 구분, a.*, b.*
+from T1_j2 as a
+full join h81_sum as b on
+a.구분=b.구분
+group by calculated 구분;
+quit;
+
+
+
+
