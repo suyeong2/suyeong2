@@ -22,6 +22,11 @@ y <- ts(pop2, start=1960)
 plot(y)
 autoplot(y)+geom_smooth(method = "lm")
 
+out2<-tslm(y~trend+I(trend^2))
+fcast<-forecast(out2,h=20)
+autoplot(fcst)+
+  ggtitle("회귀를 이용한 예측값") +  xlab("연도")
+  
 out2<-tslm(y~trend)
 out6<-tslm(log(y)~trend+I(trend^2))
 summary(out6)#1960년을 1로 간주해서 분석한 결과임
