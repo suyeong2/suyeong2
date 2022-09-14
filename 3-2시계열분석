@@ -1,0 +1,33 @@
+head(population)
+pop <-read.table("F:/work/2019/강의/시계열자료분석/timedata/population.txt")
+pop2 <-as.vector(t(population))/10000
+x <- 1960:1995
+plot(x, pop2,type = "l")
+
+library(ggplot2)
+df<-data.frame(x,pop2)
+model1<-lm(pop2~x, data=df)
+summary(model1)
+lines(x,model1$fitted.values,col="red",lwd=2,lty=2)
+
+model2<-lm(pop2~x+I(x^2),data=df)
+lines(x, model2$fitted.values,col="blue",lwd=2,lty=2)
+
+predict(model2,data.frame(x=2000),interval="confidence")
+
+
+
+library(forecast)
+y <- ts(pop2, start=1960)
+plot(y)
+autoplot(y)+geom_smooth(method = "lm")
+
+out2<-tslm(y~trend)
+out6<-tslm(log(y)~trend+I(trend^2))
+summary(out6)#1960년을 1로 간주해서 분석한 결과임
+
+# 예측은
+fcast<-forecast(out6, h=5)
+
+autoplot(fcast) +
+  ggtitle("회귀를 이용한 예측값") +  xlab("연도") 
