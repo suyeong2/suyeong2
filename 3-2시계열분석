@@ -31,6 +31,9 @@ out2<-tslm(y~trend)
 out6<-tslm(log(y)~trend+I(trend^2))
 summary(out6)#1960년을 1로 간주해서 분석한 결과임
 
+autoplot(fcast)#1차
+autoplot(fcast1, col="red")#2차?
+
 # 예측은
 fcast<-forecast(out6, h=5)
 
