@@ -1,0 +1,79 @@
+/*자료 읽기*/
+*방법 1;
+data ex_data;
+input x1 x2 x3 x4 x5;
+cards;
+3 33 73 8 12
+3 30 59 28 20
+35 83 91 32 34
+35 83 85 33 32
+15 40 55 68 52
+3 53 76 10 8
+68 83 85 48 50
+15 47 77 76 76
+46 60 83 83 68
+98 83 91 80 72
+;
+run;
+*방법 2;
+proc import
+datafile="G:\ex_data.xlsx"
+out=ex_data
+dbms=xlsx replace;
+run;
+
+
+/*산점도 그리기*/
+*방법 1;
+proc plot data=ex_data;
+plot x4*x3="*";
+run; quit;
+*방법 2;
+proc gplot data=ex_data;
+plot x5*x4;
+run; quit;
+
+*행렬도;
+proc sgscatter data=ex_data;
+matrix x1-x5;
+run;
+
+/*표본공분산과 상관행렬*/
+proc corr data=ex_data out=out cov csscp;/*cov공분산 csscp 추정제곱합*/
+var x1-x5;
+run;
+
+/*중심화*//*평균을 0으로*/
+proc standard data=ex_data out=centered mean=0;/*평균이 0인 중심화데이터를 만들 수 있음*/
+var x1-x5;
+run;
+
+/*표준화*//*평균0, 표준편차1*/
+*방법 1;
+proc standard data=ex_data out=standardized_1 mean=0 std=1;
+var x1-x5;
+run;
+*방법 2;
+proc stdize data=ex_data out=standardized_2;/*stdize는 mean사용하지 않아도 된다*/
+var x1-x5;
+run;
+
+/*행렬계산*/
+proc iml;
+use ex_data;
+read all ;
+x = x0 || x1 || x2 || x3 || x4 || x5;
+n=nrow(x); p=ncol(x); one=j(n,1,1);
+print n p x one;
+/*평균벡터 계산*/
+mean = x`/n*one;
+print mean;
+/*중심화된 행렬*/
+C=x-one*mean`;
+print C;
+/*공분산 행렬*/
+S=C`C/(n-1);
+print S;
+run; quit;
+
+
