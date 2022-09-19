@@ -38,4 +38,51 @@ autoplot(fcast1, col="red")#2차?
 fcast<-forecast(out6, h=5)
 
 autoplot(fcast) +
-  ggtitle("회귀를 이용한 예측값") +  xlab("연도") 
+  ggtitle("회귀를 이용한 예측값") +  xlab("연도")
+  
+
+
+a1=-0.8
+a2=1.4
+
+i<-1:100
+first = a1*sin(pi*i/6 + pi/8)
+second = a2*sin(pi*i/3+pi*3/4)
+z=first+second
+
+plot(1:100, z, type="o", lwd=2)
+
+library(forecast)
+z2 <- ts(z, frequency = 12)  #계절성분이 12인 seasonal time series data로 변환
+#frequency=1이면 1년으로 나옴
+
+fit1<-tslm(z2~season)
+autoplot(z2)
+
+
+fore1<-forecast(fit1,h=12)
+autoplot(fore1)
+
+
+x<-rep(1:12,10)[1:100]
+year<-rep(2006:2018,each=12)[1:100]
+df<-data.frame(x,z)
+head(df)
+out1<-lm(z~factor(x),data=df) #factor로 잡아주고 해야함
+summary(out1)
+
+df<-data.frame(x,z,year)
+head(df)
+out1<-lm(z~factor(x)+year,data=df)
+summary(out1)
+
+
+time<-1:100
+SIN<-COS <- matrix(nr=length(time), nc=6)
+
+for(i in 1:6){
+  COS[,i] <- cos(2*pi*i*time/12)
+  SIN[,i] <- sin(2*pi*i*time/12)
+}
+head(COS)
+head(SIN)
