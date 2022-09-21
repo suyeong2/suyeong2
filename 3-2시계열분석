@@ -86,3 +86,94 @@ for(i in 1:6){
 }
 head(COS)
 head(SIN)
+
+
+
+library(fpp3)
+us_change 
+
+us_change %>% 
+  pivot_longer(
+    cols = c("Consumption", "Income"),
+    names_to = "Series",
+    values_to = "value"
+  ) -> us_change2
+
+us_change2
+
+us_change2 %>% 
+ + autoplot(value) + labs(y="% change")
+
+us_change %>% 
+  ggplot(aes(x = Income, y = Consumption)) +
+  geom_point(size = 1.2) +
+  geom_smooth(formula = y ~ x, method = "lm", se = FALSE) + # method = "lm"은 linear regerssion을 의미합니다.
+  labs(
+    x = "Income (quarterly % change)",
+    y = "Consumption (quaterly % change)"
+  )
+
+fit_consMR <- us_change %>% 
+  model(tslm = TSLM(formula = Consumption ~ Income + Production + Unemployment + Savings))
+fit_consMR %>% 
+  report()
+
+fit_consMR %>% 
+  augment()
+
+
+##이제 중요
+recent_production <- aus_production %>% 
+  filter(year(Quarter) >= 1992)
+
+recent_production %>% 
+  autoplot(Beer) +
+  labs(y = "Megalitres", title = "Australian quarterly beer production")
+
+# trend() 함수와 season() 함수는 디폴트로 들어가는 표준함수가 아닙니다. 필요 시 TSLM() 함수 안에서 적용합니다.
+fit_beer <- recent_production %>% 
+  model(TSLM(formula = Beer ~ trend() + season()))
+
+fit_beer %>% 
+  report()
+
+
+
+recent_production %>% 
+  model(TSLM(formula = Beer ~ trend() + fourier(K = 2)))->model1
+
+recent_production %>% 
+  model(TSLM(formula = Beer ~ trend() + season()))->model2
+
+recent_production %>% 
+  model(TSLM(formula = Beer ~ trend()))->model22
+
+recent_production %>% 
+  model(TSLM(formula = Beer ~ season()))->model23
+
+model1 %>% 
+  glance() %>% 
+  select(adj_r_squared, CV, AIC, AICc, BIC)
+model2 %>% 
+  glance() %>% 
+  select(adj_r_squared, CV, AIC, AICc, BIC)
+model22 %>% ##안좋음
+  glance() %>% 
+  select(adj_r_squared, CV, AIC, AICc, BIC)
+model23 %>% ##model22보다 좋다?
+  glance() %>% 
+  select(adj_r_squared, CV, AIC, AICc, BIC)
+
+##예측
+forecast(model1) %>% 
+  autoplot(recent_production) +
+  labs(y = "megalitres", title = "Forecasts of beer production using regression")
+forecast(model2) %>% 
+  autoplot(recent_production) +
+  labs(y = "megalitres", title = "Forecasts of beer production using regression")
+forecast(model23) %>%  ##추세성 없음 정확도 떨어짐
+  autoplot(recent_production) +
+  labs(y = "megalitres", title = "Forecasts of beer production using regression")
+
+
+
