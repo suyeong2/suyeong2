@@ -77,3 +77,22 @@ print S;
 run; quit;
 
 
+
+libname a "C:\Users\OWNER\Downloads";
+/*상관관계 : 자료의 예비적 탐색*/
+proc corr data=a.satis;
+var x1-x5;
+run;
+/*방법 1) 공분산행렬을 이용한 주성분분석*/
+*중심화;
+proc standard data=a.satis out=centered mean=0;
+var x1-x5;
+run;
+*주성분분석; /*cov 공분산*//*proc princomp주성분분석*/
+proc princomp data=centered cov outstat=outst2_1 out=out2_1;
+var x1-x5;
+run;
+/*방법 2) 공분산행렬을 이용한 주성분분석*/
+proc princomp data=a.satis cov outstat=outst2_1 out=out2_1;
+var x1-x5;
+run;
