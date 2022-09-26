@@ -176,4 +176,62 @@ forecast(model23) %>%  ##추세성 없음 정확도 떨어짐
   labs(y = "megalitres", title = "Forecasts of beer production using regression")
 
 
+##Nonlinear regression
+library(fpp3)
+boston_men <- boston_marathon %>% 
+  filter(Year >= 1924 & Event == "Men's open division") %>% 
+  mutate(Minutes = as.numeric(Time)/60)
+
+boston_men
+
+boston_men %>% autoplot()
+
+boston_men %>% 
+  autoplot(Minutes) +
+  geom_smooth(se = FALSE, method = "lm") +
+  labs(x = "Year", y = "Minutes")
+
+
+
+fit_trends <- boston_men %>% 
+  model(
+    linear = TSLM(formula = Minutes ~ trend()), #일차
+    exponential = TSLM(formula = log(Minutes) ~ trend()),##리미트만? 로그변환?
+    piecewise = TSLM(formula = Minutes ~ trend(knots = c(1950, 1980)))##매듭?
+  )
+
+fc_trends <- fit_trends %>% 
+  forecast(h = 10)
+
+boston_men %>% 
+  autoplot(Minutes) +
+  geom_line(data = fit_trends %>% fitted(), aes(y = .fitted, colour = .model)) +
+  autolayer(fc_trends, alpha = 0.5, level = 95) +
+  labs(y = "Minutes", title = "Boston marathon winning times")
+
+
+
+
+-------------------------------------------------------------------
+##지수함수
+iexp<-function(x) return(1/exp)
+plot(exp,0, 5)
+##지수함수를 역수로 바꾸면
+iexp<-function(x) return(1/exp)
+x<-seq(0,5,0.1)
+y<-1/exp(x)
+plot(x,y,type = "l")
+------------------------------------------------------------------
+##지수평활법
+
+
+
+
+
+
+
+
+
+
+
 
