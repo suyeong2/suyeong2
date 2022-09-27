@@ -96,3 +96,27 @@ run;
 proc princomp data=a.satis cov outstat=outst2_1 out=out2_1;
 var x1-x5;
 run;
+
+
+/*방법 1) 상관행렬을 이용한 주성분분석*/
+*표준화;
+proc standard data=a.satis out=standardized mean=0 sd=1;
+var x1-x5;
+run;
+*주성분분석;
+proc princomp data=standardized outstat=outst2_1 out=out2_1;
+var x1-x5;
+run;
+/*방법 2) 상관행렬을 이용한 주성분분석*/
+proc princomp data=a.satis outstat=outst2_1 out=out2_1;
+var x1-x5;
+run;
+
+/*공분산행렬에 기초*/
+proc princomp data=a.bloodcov cov outstat=out_cov;
+var x1-x8;
+run;
+/*상관행렬에 기초*/
+proc princomp data=a.bloodcor outstat=out_cor;
+var x1-x8;
+run;
