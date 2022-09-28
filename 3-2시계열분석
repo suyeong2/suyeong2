@@ -223,6 +223,14 @@ y<-1/exp(x)
 plot(x,y,type = "l")
 ------------------------------------------------------------------
 ##지수평활법
+library(fpp2)
+oildata <- window(oil, start=1996)
+autoplot(oildata) +
+  ylab("원유 (백만 톤)") + xlab("연도")
+
+oildata %>% meanf(h=5) %>% autoplot ##meanf는전체평균으로 예픅
+
+oildata %>% ses(h=5) %>% autoplot ##ses단점 추세반영되어있지 않음
 
 
 
