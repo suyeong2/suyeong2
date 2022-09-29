@@ -120,3 +120,56 @@ run;
 proc princomp data=a.bloodcor outstat=out_cor;
 var x1-x8;
 run;
+
+
+
+
+---------------------------------
+과제
+options validvarname=any;
+
+proc import 
+datafile="C:\Users\OWNER\Downloads\과제 1_data1_지출.xlsx"
+out=gg dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+/*상관관계 : 자료의 예비적 탐색*/
+proc corr data=gg;
+var 밥값--미용;       
+run;
+/*중심화*/
+proc standard data=gg out=g1 mean=0;
+var 밥값--미용;
+run;
+/*주성분분석*/
+proc princomp data=g1 cov outstat=outst2_1 out=out2_1;
+var 밥값--미용;
+run;
+/*주성분점수 그래프*/
+proc princomp data=gg
+plots (ncomp=2) = (pattern score score(ellipse));
+var 밥값--미용;
+run;
+
+/*상관행렬을 이용한 주성분분석*/
+proc princomp data=gg outstat=outst2_1 out=out2_1;
+var 밥값--미용;
+run;
+
+/*공분산행렬에 기초*/
+proc princomp data=a.bloodcov cov outstat=out_cov;
+var x1-x8;
+run;
+
+proc import 
+datafile="C:\Users\OWNER\Downloads\과제 1_data2_육상경기.xlsx"
+out=kk dbms=xlsx replace;
+sheet="Sheet1";
+run;
+
+proc corr data=kk;
+var hurdles--run800m;          
+run;
+
+
