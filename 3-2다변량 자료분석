@@ -168,8 +168,21 @@ out=kk dbms=xlsx replace;
 sheet="Sheet1";
 run;
 
+/*상관관계 : 자료의 예비적 탐색*/
 proc corr data=kk;
-var hurdles--run800m;          
+var hurdles--run800m;
 run;
-
+/*주성분점수 그래프*/
+proc princomp data=kk
+plots (ncomp=2) = (pattern score score(ellipse));
+var hurdles--run800m;
+run;
+/*상관행렬을 이용한 주성분분석*/
+proc princomp data=kk outstat=outst2_1 out=out2;
+var hurdles--run800m;
+run;
+/*상관행렬에 기초*/
+proc princomp data=a.bloodcor outstat=out_cor;
+var hurdles--run800m;
+run;
 
