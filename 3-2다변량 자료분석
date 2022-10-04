@@ -127,9 +127,9 @@ run;
 ---------------------------------
 과제
 options validvarname=any;
-
+/*연습1*/
 proc import 
-datafile="C:\Users\OWNER\Downloads\과제 1_data1_지출.xlsx"
+datafile="C:\Users\ju011\Downloads\과제 1_data1_지출.xlsx"
 out=gg dbms=xlsx replace;
 sheet="Sheet1";
 run;
@@ -138,30 +138,36 @@ run;
 proc corr data=gg;
 var 밥값--미용;       
 run;
+
 /*중심화*/
 proc standard data=gg out=g1 mean=0;
 var 밥값--미용;
 run;
+
 /*주성분분석*/
 proc princomp data=g1 cov outstat=outst2_1 out=out2_1;
 var 밥값--미용;
 run;
+
 /*주성분점수 그래프*/
 proc princomp data=gg
 plots (ncomp=2) = (pattern score score(ellipse));
 var 밥값--미용;
 run;
 
-/*상관행렬을 이용한 주성분분석*/
-proc princomp data=gg outstat=outst2_1 out=out2_1;
+/*공분산행렬에 기초*/
+proc princomp data=gg cov outstat=out_cov;
 var 밥값--미용;
 run;
 
-/*공분산행렬에 기초*/
-proc princomp data=a.bloodcov cov outstat=out_cov;
-var x1-x8;
-run;
+/*변수 3개 선택
+제1주성분=비지속적 지출
+제2주성분=품위유지비
+제3주성분=자기개발
+*/
 
+
+/*연습2*/
 proc import 
 datafile="C:\Users\OWNER\Downloads\과제 1_data2_육상경기.xlsx"
 out=kk dbms=xlsx replace;
@@ -182,9 +188,14 @@ proc princomp data=kk outstat=outst2_1 out=out2;
 var hurdles--run800m;
 run;
 /*상관행렬에 기초*/
-proc princomp data=a.bloodcor outstat=out_cor;
+proc princomp data=kk outstat=out_cor;
 var hurdles--run800m;
 run;
+
+/*변수 2개 선택*/
+/*제1주성분: 트랙있없,빠를수록 좋고 느릭수록 좋다,성적
+제2주성분: 출발 도착 거리차,창던지기를 잘함과 못함*/
+--------------------------------------------------------
 
 
 /*인자분석*/
