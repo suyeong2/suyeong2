@@ -186,3 +186,17 @@ proc princomp data=a.bloodcor outstat=out_cor;
 var hurdles--run800m;
 run;
 
+
+/*인자분석*/
+libname a "C:\Users\OWNER\Downloads";
+
+/*상관관계 : 자료의 예비적 탐색*/
+proc corr data=a.tvprog ;
+var x1-x8;
+run;
+/* 인자분석(상관계수행렬사용)*/
+proc factor data=a.tvprog
+simple corr rotate=varimax reorder
+plots=(scree loadings);
+var x1-x8;
+run;
