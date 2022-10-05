@@ -233,6 +233,87 @@ oildata %>% meanf(h=5) %>% autoplot ##meanf는전체평균으로 예픅
 oildata %>% ses(h=5) %>% autoplot ##ses단점 추세반영되어있지 않음
 
 
+library(forecast)
+y<-ts(airquality$Ozone)
+autoplot(y)
+y %>% 
+  meanf() %>% autoplot()  ##meanf는 평균
+
+##지수평활로 예측
+y %>% 
+  ses() %>% autoplot()  ##얼마시점 이후에는 영향을 주지 않음
+
+y %>% 
+  holt() %>% autoplot() ##평균값만 보는게 아니라 기울기도, 기울기 추세성 있는지 없느지 본다
+
+y %>% 
+  holt(damped = T) %>% autoplot()##damped = T 추세감쇠?
+
+
+y %>% holt()->fit2
+fit2$model
+##최근데이터에 더 많은 가중치를 줌
+
+##Smoothing parameters:
+  ##alpha = 0.4874 알파가 거의 0인건
+##베타값이 변화 없다?
+
+##pie는 감쇠정도(평균으로 돌아갈수 있는게 어느정도가 되는가)
+
+
+##홀트-윈터스의 계절성 기법
+library(fpp2)
+
+aust <- window(austourists,start=2005)
+autoplot(aust)
+
+##가법모형 "additive"
+##obs=level+slope+season
+##계절 변동이 일정하면 가법
+fit1 <- hw(aust,seasonal="additive")
+fit1$model
+hw(aust,seasonal="additive", damped = T)##damped = T넣으면.....
+#s = 1.3106 -1.6935 -9.3132 9.6962 1:4분기로 되어있어 4개
+##gamma = 0.4263  0.4정도의 가중치
+plot(fit1$model)
+
+##승법모형 "multiplicative"
+##obs=level*slope*season
+##계절성의 변동이 계속 커질때 사용?
+##게절성이 변동이 있을때 승법
+fit2 <- hw(aust,seasonal="multiplicative")
+plot(fit2$model)
+
+## PI=FALSE없이 그리면 신뢰구간 표현
+autoplot(aust) +
+  autolayer(fit1, series="HW 덧셈 예측", PI=FALSE) +
+  autolayer(fit2, series="HW 곱셈 예측",
+            PI=FALSE) +
+  xlab("연도") +
+  ylab("호주 국제선 여행객 숙박일 (단위: 백만)") +
+  guides(colour=guide_legend(title="예측"))
+
+
+##해보기ㅣ
+beer
+autoplot(beer)
+ 
+tslm(beer~trend+season)->fit0
+summary(fit0)
+forecast(fit0,h=12) %>% autoplot()
+##tslm(beer~trend+fourier(beer,k=6............))
+hw(beer,h=12) %>% autoplot()
+hw(beer,h=12,seasonal="additive")->fit11
+hw(beer,h=12,seasonal="multiplicative")->fit22
+
+autoplot(beer)+
+  autolayer(forecast(fit0,h=12),series="추세모형",PI=FALSE)+
+  autolayer(fit11,series = "HW 덧셈",PI=FALSE)+
+  autolayer(fit22,series="HW 곱셈",PI=FALSE)
+
+##3개의 모형중 잘 맞는게 뭔지 알려면
+##일부만 활용해서?..........
+
 
 
 
