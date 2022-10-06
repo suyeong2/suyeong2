@@ -211,3 +211,29 @@ simple corr rotate=varimax reorder
 plots=(scree loadings);
 var x1-x8;
 run;
+
+
+
+/*1. 주성분분석법*/
+/*1) 주성분분석*/
+proc princomp data=a.satis;
+var x1-x5;
+run;
+/*2) 인자분석*/
+proc factor data=a.satis
+method=principal nfactors=2;
+var x1-x5;
+run;
+
+
+/*2. 주축인자법*/
+proc factor data=a.satis
+method=prinit priors=one maxiter=100 heywood;
+var x1-x5;
+run;
+
+/*3. 최대우도법*/
+proc factor data=a.satis
+method=ML priors=SMC maxiter=100 heywood;
+var x1-x5;
+run;
