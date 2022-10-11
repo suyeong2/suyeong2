@@ -237,3 +237,16 @@ proc factor data=a.satis
 method=ML priors=SMC maxiter=100 heywood;
 var x1-x5;
 run;
+
+
+
+/*주성분분석 + 배리맥스 회전*/
+proc factor data=a.satis
+method=principal rotate=varimax nfactors=2;
+var x1-x5;
+run;
+
+proc factor data=a.satis out=f_score
+method=principal rotate=varimax nfactors=2;
+var x1-x5;
+run;
