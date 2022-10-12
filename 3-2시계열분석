@@ -316,6 +316,32 @@ autoplot(beer)+
 
 
 
+##평활법2
+library(fpp2)
+aust <- window(austourists, start=2005)
+fit <- ets(aust)
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+
+##ZNN을 넣으면 ses랑 결과가 같음
+fit <- ets(aust,model = "ZNN")  ##model("ZZZ"/"ZAA")
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+##추세감쇠(damped = NULL맞는지 모르겠음)
+fit <- ets(aust,model = "ZNN",damped = NULL)
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+#가법으로 그려짐(hw)
+fit1<-hw(aust,h=12)
+autoplot(fit1)
+autoplot(fit1,PI=FALSE,col="blue")+
+  autolayer(outfit,col="red",PI=FALSE)
 
 
 
