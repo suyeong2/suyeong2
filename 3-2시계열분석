@@ -345,6 +345,60 @@ autoplot(fit1,PI=FALSE,col="blue")+
 
 
 
+##평활법2
+library(fpp2)
+aust <- window(austourists, start=2005)
+fit <- ets(aust)
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+
+##ZNN을 넣으면 ses랑 결과가 같음
+fit <- ets(aust,model = "ZNN")  ##model("ZZZ"/"ZAA")
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+##추세감쇠(damped = NULL맞는지 모르겠음)
+fit <- ets(aust,model = "ZNN",damped = NULL)
+outfit<-forecast(fit,h=12)
+autoplot(fit)
+autoplot(outfit)
+
+#가법으로 그려짐(hw)
+fit1<-hw(aust,h=12)
+autoplot(fit1)
+autoplot(fit1,PI=FALSE,col="blue")+
+  autolayer(outfit,col="red",PI=FALSE)
+
+
+
+##분해법
+aust %>% autoplot
+decompose(aust) %>% plot ##decompose뭐다..?
+decompose(aust)->out1
+
+##4개로 뭉개서 계절성 없애ㅐ기?
+ma(aust,4)
+out1$trend
+
+aust-ma(aust,4) ##계절성분+오차뭐시기
+
+out1$seasonal ###과거부터 현재까지 변화없음
+out1$trend ##평균값이 나옴(이동평균)
+aust-out1$trend->temp1
+temp1
+temp1[seq(1,44,by=4)] %>% mean(., na.rm=T)
+temp1[seq(2,44,by=4)] %>% mean(., na.rm=T)
+temp1[seq(3,44,by=4)] %>% mean(., na.rm=T)
+temp1[seq(4,44,by=4)] %>% mean(., na.rm=T)
+out1$seasonal[1:4]
+
+##4개로 뭉개서 계절성 없애ㅐ기?
+ma(aust,4)
+out1$trend
+
 
 
 
