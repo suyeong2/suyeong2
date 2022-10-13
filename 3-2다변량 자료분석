@@ -250,3 +250,52 @@ proc factor data=a.satis out=f_score
 method=principal rotate=varimax nfactors=2;
 var x1-x5;
 run;
+
+
+
+
+
+----------------------------------------------
+4-1인자분석 연습
+
+options validvarname=any;
+
+libname a "C:\Users\OWNER\Downloads";
+/*변수간 상관성 확인*/
+proc corr data=a.protein ;
+var x1-x9;
+run;
+/*추정방법 및 회전 선택 및 인자분석의 적절성 확인*/
+/*1) 주성분분석*/
+proc princomp data=a.protein;
+var x1-x9;
+run;
+
+/*2) 인자분석*/
+proc factor data=a.protein
+method=principal nfactors=3;
+var x1-x9;
+run;
+
+/*주성분3개 선택*/
+
+/*주성분분석 + 배리맥스 회전*/
+proc factor data=a.protein
+method=principal rotate=varimax nfactors=3 reorder; /*reorder 큰수부터로 정리해줌*/
+var x1-x9;
+run;
+
+/*주성분 이름 지어주기*/
+/*x1:흰식품
+x2 :소
+x3 :페스코 베지테리언  */
+----------------------------------
+/*공통성모두 0.5이상이라 적절하다?*/
+
+/*회전 전이나 후의 공통성을 동일하다*/
+/*인자 적재값은 절댓값으로 판단함*/
+
+/*인자적재값이 모두 낮을 경우 포함되지 않을 수도 있다. 그럼 그 적재값은 버리고 생각함*/
+
+
+/*공통성등 어떻게 구해지는지 알아두기*/
