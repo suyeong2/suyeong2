@@ -400,6 +400,30 @@ ma(aust,4)
 out1$trend
 
 
+library(fpp2)
+elecequip %>% autoplot
+
+ma(elecequip,12) %>% head(24)##12개의 평균값을 이동하며 만들어줌 ##원자료
+ma(elecequip,12) %>% round(2) %>% head(24) ##이동평균한 값
+
+
+elecequip-ma(elecequip,12) %>% round(2) %>% round(2)##계절성 + 오차항?
+
+##가법모형
+elecequip %>% decompose(type = "additive")->out1
+out1
+out1$trend
+ma(elecequip,12)
+##계절성은 변함 없다?
+
+##승법모형
+elecequip %>% decompose(type = "multiplicative")->out2
+out2$x/out2$trend
+out2$seasonal %>% round(2) %>% head(24)
+out2$random %>% round(2) %>% head(24)
+
+
+##국지평활모형(알아만 둬도댐)
 
 
 
