@@ -31,3 +31,5 @@ diff(y)
 ##정상있는 데이터로 잘 바뀜
 plot(diff(y), type="o")
 
+ts(y) %>% 
+  auto.arima()
