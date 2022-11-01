@@ -1,1 +1,10 @@
-
+libname a "C:\Users\OWNER\Downloads";
+/*정준상관분석*/
+proc cancorr data=a.job
+corr simple
+vprefix=Xcan wprefix=Ycan
+vname="업무특성"
+wname="만족도";
+var x1- x3;         /*var이랑 with에 순서 다르게 넣어도 되기함*/
+with y1 - y3;
+run;
