@@ -1,3 +1,4 @@
+5장
 libname a "C:\Users\OWNER\Downloads";
 /*정준상관분석*/
 proc cancorr data=a.job
@@ -24,3 +25,42 @@ vprefix=Xcan wprefix=Ycan vname="업무특성" wname="만족도";
 var x1- x3;
 with y1 - y3;
 run;
+
+
+6장 군집분석
+libname a "C:\Users\OWNER\Downloads";
+
+/*계층적 군집분석*/
+proc cluster data=a.protein standard
+method=ward outtree=tree_out ;
+var x1-x9;
+run;
+
+/*덴드로그램*/
+axis1 order=(0 to 1 by 0.1);
+proc tree data=tree_out haxis=axis1 horizontal
+out=output nclusters=5;
+height _RSQ_;
+id _NAME_;
+copy x1-x9;
+run;
+
+/*  Proc stadnard 프로시저 + Proc means 프로시저  */
+*표준화;
+data output_2;
+set output;
+z1=x1; z2=x2; z3=x3; z4=x4; z5=x5; z6=x6; z7=x7;z8=x8; z9=x9;
+run;
+proc standard data=output_2 mean=0 std=1 out=output_3;
+var z1-z9;
+run;
+*출력;
+proc means data=output_3 noprint;
+class cluster;
+var x1-x9 z1-z9;
+output out=mean_output mean=;
+run;
+proc print data=mean_output round;
+var CLUSTER _FREQ_ x1-x9; run;
+proc print data=mean_output round;
+var CLUSTER _FREQ_ z1-z9; run;
