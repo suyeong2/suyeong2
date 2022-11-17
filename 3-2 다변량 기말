@@ -64,3 +64,36 @@ proc print data=mean_output round;
 var CLUSTER _FREQ_ x1-x9; run;
 proc print data=mean_output round;
 var CLUSTER _FREQ_ z1-z9; run;
+
+
+/*  Proc fastclus 프로시저  */
+
+*데이터;
+data data;
+input id x1 x2 @@;
+cards;
+1 1.0 1.0 2 1.5 2.0 3 3.0 4.0 4 5.0 7.0 5 3.5 5.0
+6 4.5 5.0 7 3.5 4.5
+;
+run;
+*k-means 군집;
+proc fastclus data=data out=out_fast
+maxclusters=2 maxiter=100;
+var x1 x2;
+run;
+
+/*  Proc cluster 프로시저 + Proc gplot 프로시저  */
+/*군집의 수*/
+proc cluster data=a.iris standard
+method=ward outtree=tree_out CCC pseudo;
+var x1-x4;
+run;
+proc sort data=tree_out out=tree_out_s;
+by _ncl_;
+run;
+/*그래프 그리기*/
+symbol i=join v=dot ci=blue cv=red;
+proc gplot data=tree_out_s;
+plot(_rsq_ _ccc_ _psf_ _pst2_)*_ncl_;
+where _ncl_<=15;
+run; quit;
