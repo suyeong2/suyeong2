@@ -111,15 +111,11 @@ run;
 
 /*계층적 군집분석*/
 proc cluster data=a standard
-method=complete outtree=aa;
+method=complete outtree=tree_out CCC pseudo;
 var Sepal_Length--Petal_Width;
 run;
 
 /*군집의 수*/
-proc cluster data=a standard
-method=complete outtree=tree_out CCC pseudo;
-var Sepal_Length--Petal_Width;
-run;
 proc sort data=tree_out out=a1;
 by _ncl_;
 run;
