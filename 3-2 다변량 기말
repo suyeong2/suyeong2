@@ -97,3 +97,51 @@ proc gplot data=tree_out_s;
 plot(_rsq_ _ccc_ _psf_ _pst2_)*_ncl_;
 where _ncl_<=15;
 run; quit;
+
+
+
+
+/*6-1장 군집분석 연습*/
+options validvarname=any;
+proc import 
+datafile="C:\Users\OWNER\Downloads\iris (2).csv"
+out=a dbms=csv replace;
+getnames=yes;
+run;
+
+/*계층적 군집분석*/
+proc cluster data=a standard
+method=complete outtree=aa;
+var Sepal_Length--Petal_Width;
+run;
+
+/*군집의 수*/
+proc cluster data=a standard
+method=complete outtree=tree_out CCC pseudo;
+var Sepal_Length--Petal_Width;
+run;
+proc sort data=tree_out out=a1;
+by _ncl_;
+run;
+
+/*그래프 그리기*/
+symbol i=join v=dot ci=blue cv=red;
+proc gplot data=a1;
+plot(_rsq_ _ccc_ _psf_ _pst2_)*_ncl_;
+where _ncl_<=15;
+run; quit;
+
+/*덴드로그램*/
+axis1 order=(0 to 1 by 0.1);
+proc tree data=aa haxis=axis1 horizontal
+out=output nclusters=5;
+height _RSQ_;
+id _NAME_;
+copy Sepal_Length--Petal_Width;
+run;
+
+/*k-means 군집*/
+proc fastclus data=a out=out_fast
+maxclusters=3 maxiter=100;
+var Sepal_Length--Petal_Width;
+run;
