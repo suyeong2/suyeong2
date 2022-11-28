@@ -33,3 +33,36 @@ plot(diff(y), type="o")
 
 ts(y) %>% 
   auto.arima()
+
+
+
+
+
+
+
+
+library(prophet)
+library(dplyr)
+library(lubridate) ##음력양력 계산할수 있게
+library(vroom)
+library(tidyverse)
+
+wp_log_peyton <- vroom("https://raw.githubusercontent.com/facebook/prophet/main/examples/example_wp_log_peyton_manning.csv", delim = ",")
+head(wp_log_peyton)
+plot(wp_log_peyton$y, type="l")
+
+library(pkgbuild)
+head(wp_log_peyton)
+mod<-prophet(wp_log_peyton)
+future<-make_future_dataframe(mod,preiods=365)
+pred<-predict(mod, future)
+plot(mod,pred)
+prophet_plot_components(mod,pred)
+
+
+wp_log_r2<-wp_log_peyton %>% mutate(cap=8.5)
+mod_logistic <- prophet(wp_log_r2, growth = "logistic")
+future <- make_future_dataframe(mod_logistic, periods = 1826) %>% 
+  mutate(cap = 8.5)
+pred_logistic <- predict(mod_logistic, future)
+plot(mod_logistic, pred_logistic)
