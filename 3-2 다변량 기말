@@ -141,3 +141,47 @@ proc fastclus data=a out=out_fast
 maxclusters=3 maxiter=100;
 var Sepal_Length--Petal_Width;
 run;
+
+
+/*판별분석*/
+/* Proc Discrim 프로시저*/
+
+/*선형판별분석(LDA)*/
+proc discrim data=a.finance
+outstat=out8_s1 out=out8_1(rename=(_INTO_=y_hat))
+anova simple
+method=normal;
+class y;
+var x1-x4;
+id id;
+run;
+
+/*이차판별분석(QDA)*/
+proc discrim data=a.finance
+outstat=out8_s1 out=out8_1(rename=(_INTO_=y_hat))
+anova simple
+method=normal
+pool=test slpool=0.10;
+class y;
+var x1-x4;
+id id;
+run;
+
+
+/*Proc Candisc 프로시저 + Proc discrim 프로시저*/
+*방법 1;
+proc candisc data=a.iris
+outstat=out8_s2 out=out8_2
+anova;
+class species;
+var x1-x4;
+run;
+
+*방법 2;
+proc discrim data=a.iris
+outstat=out8_s1 out=out8_1
+anova simple bcov pcov
+canonical;
+class species;
+var x1-x4;
+run;
