@@ -185,3 +185,45 @@ canonical;
 class species;
 var x1-x4;
 run;
+
+/*7장 연습문제 과제*/
+proc import
+datafile="C:\Users\OWNER\Downloads\구매브랜드조사데이터.xlsx"
+out=a
+dbms=xlsx replace;
+run;
+
+/*판별변수 선택*/
+proc stepdisc data=a
+method=stepwise slentry=0.15 slstay=0.15;
+class 구매브랜드;
+var 연령--거주년도;
+run;
+
+/*선형판별분석(LDA)/이차판별분석(QDA)*/
+proc discrim data=a
+outstat=out8_s1 out=out8_1(rename=(_INTO_=y_hat))
+anova simple
+method=normal
+pool=test slpool=0.10;
+class 구매브랜드;
+var 세대연수입 세대사람수 방문빈도;
+id 아이디;
+run;
+
+/*L1(x):--33.41829+0.00501(세대연수입)+3.09299(세대사람수)+2.69248(방문빈도)
+  L2(x):-11.66563+0.00326(세대연수입)+1.60959(세대사람수)+1.15990(방문빈도)*/
+/*오류율0.04*/
+
+/*정준판별분석*/
+proc discrim data=a
+outstat=out8_s1 out=out8_1
+anova simple bcov pcov
+canonical;
+class 구매브랜드;
+var 세대연수입 세대사람수 방문빈도;
+run;
+
+
+/*v1=0.00(세대연수입-6900)+0.43(세대사람수-3.55000)+0.44(방문빈도-3.25000)*/
+/*오류율0.04*/
