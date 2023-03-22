@@ -1,0 +1,54 @@
+library(sp)
+data(meuse)
+head(meuse)
+plot(y~x,data=meuse) ##plot(y~x,data=meuse,pch=16, cex=meuse$elev/10) 이걸로 그릴 수 있지만 수정해야하고 범례 없음
+class(meuse)
+
+meuse2<-meuse
+coordinates(meuse2)<-~x+y
+class(meuse2)
+plot(meuse2)
+
+bubble(meuse2,'zinc',
+       col=c("cornflowerblue","tomato3"))
+bubble(meuse2,'elev',
+       col=c("cornflowerblue","tomato3"))
+head(meuse2)
+
+spplot(meuse2,"zinc")
+
+
+
+data(meuse.grid)  #zinc없지만 그릴땐 있음
+head(meuse.grid)
+plot(y~x, meuse.grid)
+
+coordinates(meuse.grid) = ~x+y
+class(meuse.grid)
+
+gridded(meuse.grid) = TRUE
+
+library(gstat)
+zinc.idw = idw(zinc~1, meuse2, meuse.grid)   # meuse2앞에를 위한 데이터?,meuse.grid예측지점(전체 지역을 그릴거라 지정하지 않음)
+
+spplot(zinc.idw["var1.pred"], main = "zinc inverse distance weighted interpolations")
+
+#------------------------------------------------------------------------------------------
+meuse2@bbox
+x<-seq(178605,181390,length.out=100)    #10000해도 되지만 그럼 1억개? 겁나 오래 걸림 해상도 키우지 x
+y<-seq(329714,333611,length.out=100)
+xy<-data.frame(x=rep(x,100),y=rep(y, each=100))
+xy
+plot(y~x,xy)
+
+coordinates(xy) = ~x+y
+gridded(xy) = TRUE
+
+library(gstat)
+zinc.idw = idw(copper~1, meuse2, xy,idp = 2)   #idp = 숫자를 주는 거에 따라 모양이 바뀜(idp=-power)/idp=0으로 주면 하나의 값으로 예측된다
+                                               #숫자를 작게 주면 실제와 더 비슷?/0에 가까울수록 멀리잇는 것도 고려됨
+                                               #(idp=-power)가까이 있는 것만 고려함/1~5사이가 나이스한 거리(주로 이용하는 숫자는 2)
+                                               #비는 좀 높아야 실제자료와 비슷
+
+spplot(zinc.idw["var1.pred"])
+
