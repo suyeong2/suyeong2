@@ -797,3 +797,99 @@ ggplot(top10, aes(x = reorder_within(word, tf_idf, president),
   labs(x = NULL) +
   theme(text = element_text(family = "nanumgothic"))
 
+----------------------------------------------------------------------과제
+library(jsonlite)
+library(dplyr)
+petitions = read_json("petitions_2019-08.json", simplifyVector = T)
+head(petitions)
+head(news)
+
+library(multilinguer)
+library(stringr)
+
+#1. 분류별 청원의 수는?
+library(dplyr)
+petitions %>% group_by(category) %>% summarise(n=n())->a
+
+#2. "보건복지"에서 많이 언급된 키워드 상위 15개는?
+library(tidytext)
+library(KoNLP)
+
+petitions %>% 
+  filter(category=="보건복지") %>%  
+  mutate(content=str_replace_all(content, "[^가-힣]", " "),
+         content=str_squish(content)) %>%  
+  unnest_tokens(input = content,
+                output = word,
+                token = extractNoun)->b
+
+b %>% count(word,sort=T) %>% 
+  filter(str_count(word)>1)->b2
+head(b2,15)
+
+#3. "보건복지"에 대한 워드클라우드를 그리세요.
+library(wordcloud2)
+wordcloud2(b2)
+
+
+# 4. "보건복지"와 "정치개혁"을 비교했을 때 보건복지에서 더 많이 사용된 단어 15개,
+petitions %>%
+  filter(category=="보건복지"|category=="정치개혁") %>%
+  mutate(content = str_replace_all(content, "[^가-？]", " "),
+         content = str_squish(content)) %>%
+  unnest_tokens(input = content,
+                output = word,
+                token = extractNoun) -> out3
+out3 %>% count(category, word, sort=T) %>%
+  filter(str_count(word)>1) -> out4
+
+library(tidyr)
+out4 %>% pivot_wider(id_cols=word, names_from=category,
+                     values_from=n, values_fill=0) -> out5
+out5 %>%
+  mutate(ratio1=(보건복지+1)/(sum(보건복지)+1)) %>%
+  mutate(ratio2=(정치개혁+1)/(sum(정치개혁)+1)) %>%
+  mutate(odds = ratio1/ratio2) %>%
+  mutate(logodds=log(odds)) %>%
+  slice_max(logodds, n=10)
+
+out5 %>%
+  mutate(ratio1=(보건복지+1)/(sum(보건복지)+1)) %>%
+  mutate(ratio2=(정치개혁+1)/(sum(정치개혁)+1)) %>%
+  mutate(odds = ratio1/ratio2) %>%
+  mutate(logodds=log(odds)) %>%
+  slice_max(-logodds, n=15)
+
+
+head(news)
+table(news$class)
+u.news= unique(news$class)
+
+news %>%
+  filter(class==u.news[1]) %>%
+  mutate(text = str_replace_all(text, "[^가-？]", " "),
+         text = str_squish(text)) %>%
+  unnest_tokens(input = text,
+                output = word,
+                token = extractNoun) -> out1
+out1 %>% count(word, sort=T) %>%
+  filter(str_count(word)>1) -> out2
+wordcloud2(out2, minSize=5)
+
+# 6. TF-IDF를 이용하여 뉴스주제별로 상대적으로 많이 사용된 키워드가 무엇인지 확인하세요.
+news %>%
+  mutate(text = str_replace_all(text, "[^가-？]", " "),
+         text = str_squish(text)) %>%
+  unnest_tokens(input = text,
+                output = word,
+                token = extractNoun) -> out3
+out3 %>% count(class, word, sort=T) %>%
+  filter(str_count(word)>1) -> out4
+
+out4 %>%
+  bind_tf_idf(term = word, # 단어
+              document = class, # 텍스트 구분 변수
+              n = n) %>% # 단어 빈도
+  group_by(class) %>%
+  slice_max(tf_idf,n=5, with_ties = F) %>% View
+
