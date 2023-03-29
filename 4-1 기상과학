@@ -52,3 +52,63 @@ zinc.idw = idw(copper~1, meuse2, xy,idp = 2)   #idp = 숫자를 주는 거에 �
 
 spplot(zinc.idw["var1.pred"])
 
+
+
+library(lattice)
+library(sp)
+data(meuse)
+class(meuse)
+coordinates(meuse)<-c("x","y")
+coordinates(meuse)=~x+y
+class(meuse)
+#spatialdataframe
+#데이터프레임형태는 그림 안그려짐
+spplot(meuse,"soil")
+bubble(meuse,"soil",key.space = "bottom")
+
+#실습--------------------------------------------
+library(dplyr)
+station %>% 
+  filter(is.na(종료일))->station2
+
+library(readxl)
+station<-read_excel("C:/Users/OWNER/Downloads/station.xlsx")
+head(station)
+coordnames(station)=~경도+위도
+station@bbox
+경도<-seq(124.72,130.89,length.out=100)
+위도<-seq(33.24,38.25,length.out=100), 위도=rep(위도,each=100)
+plot(station)
+
+#교수님코드
+library(readxl)
+station<-read_excel("C:/Users/OWNER/Downloads/station.xlsx")
+head(station)
+library(dplyr)
+station %>%
+  filter(is.na(종료일)) -> station2
+
+coordinates(station2)=~경도+위도
+station2@bbox
+경도 <- seq(124.72, 130.89, length.out=50)
+위도 <- seq(33.24, 38.25, length.out=50)
+xy <- data.frame(경도=rep(경도, 100), 위도=rep(위도,each=100))
+coordinates(xy)=~ 경도+위도
+gridded(xy) = TRUE
+
+library(maps)
+map('world','south korea')
+head(station2)
+
+library(gstat)
+idw.out <- idw(노장해발고도.m. ~ 1, station2, xy, idp = 2.5)
+
+xy\$predicted = idw.out\$var1.pred
+spplot(xy, "predicted")
+
+xy\$col = cut(xy\$predicted, c(0,20,40,60,100,400,800,1000),
+              rev(heat.colors(7)))
+
+map('world', 'south korea')
+points(xy, col=paste(xy\$col), pch=15)
+
