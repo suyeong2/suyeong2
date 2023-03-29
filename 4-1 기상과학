@@ -103,12 +103,12 @@ head(station2)
 library(gstat)
 idw.out <- idw(노장해발고도.m. ~ 1, station2, xy, idp = 2.5)
 
-xy\$predicted = idw.out\$var1.pred
+xy$predicted = idw.out$var1.pred
 spplot(xy, "predicted")
 
-xy\$col = cut(xy\$predicted, c(0,20,40,60,100,400,800,1000),
+xy$col = cut(xy$predicted, c(0,20,40,60,100,400,800,1000),
               rev(heat.colors(7)))
 
 map('world', 'south korea')
-points(xy, col=paste(xy\$col), pch=15)
-
+points(xy, col=paste(xy$col), pch=15)
+map('world', 'south korea',add=T)
