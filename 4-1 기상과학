@@ -112,3 +112,83 @@ xy$col = cut(xy$predicted, c(0,20,40,60,100,400,800,1000),
 map('world', 'south korea')
 points(xy, col=paste(xy$col), pch=15)
 map('world', 'south korea',add=T)
+
+
+
+#------------------------------------------------------------
+library(sp)
+data(meuse)
+head(meuse)
+data(meuse.grid)
+head(meuse.grid)
+
+zn.lm <- lm(log(zinc) ~ sqrt(dist), meuse) 
+head(meuse)
+#zinc로그변환 시킨 이유는:
+par(mfrow=c(2,1))
+hist(meuse$zinc)#원자료 분포/작은 쪽으로 치우침
+hist(log(meuse$zinc))#로그변환된거
+#분포가 달라진다
+#좌우대칭인게 굿(그렇지 않으면 모델링 힘들다)
+hist(meuse$dist)#한쪽으로 치우친자료(모델링에 좋지 않다)
+hist(sqrt(meuse$dist))#정규분포와 비슷하게 좌우대칭 맞아짐
+#----------------------------------------------------------------
+
+
+meuse.grid$pred <- predict(zn.lm, newdata = meuse.grid)
+meuse.grid$pred2<-exp(meuse.grid$pred) #원자료값 확인
+head(meuse.grid)
+coordinates(meuse.grid)=~x+y
+spplot(meuse.grid,"pred2")
+
+#------------------------------------------------------------
+#위도경도 고려된거는 
+zn.lm2 <- lm(log(zinc) ~ sqrt(dist)+x+y, meuse)
+#거리가 2-3떨어지면~
+zn.lm2 <- lm(log(zinc) ~ sqrt(dist)+x+y+I(x^2)+I(y^2)+x*y, meuse)
+#------------------------------------------------------------
+
+#큰 차이 없는 것 처럼 보이지만
+library(mgcv)
+zn.gam <- gam(log(zinc) ~ s(dist), data=meuse) 
+meuse.grid$pred <- predict(zn.gam, newdata = meuse.grid)
+meuse.grid$pred2<-exp(meuse.grid$pred)
+coordinates(meuse.grid)=~x+y
+spplot(meuse.grid,"pred2")
+
+#추가분석----------------------------------------------------
+data(meuse.grid)
+zn.lm <- lm(log(zinc) ~ sqrt(dist)+x+y+I(x^2)+I(y^2)+x*y, meuse)
+meuse.grid$pred <- predict(zn.lm, newdata = meuse.grid)
+meuse.grid$pred2<-exp(meuse.grid$pred) 
+coordinates(meuse.grid)=~x+y
+spplot(meuse.grid,"pred2")
+
+zn.gam <- gam(log(zinc) ~ s(dist), data=meuse) 
+meuse.grid$pred <- predict(zn.gam, newdata = meuse.grid)
+meuse.grid$pred2<-exp(meuse.grid$pred)
+coordinates(meuse.grid)=~x+y
+spplot(meuse.grid,"pred2")
+
+
+#gam설명(2차원으로 설명 가능?)
+set.seed(1234)
+x<-seq(0.1,10,0.2)
+y<-log(x)+rnorm(length(x),sd=0.5)
+plot(x,y)
+
+
+model1<-lm(y~x)
+predict(model1,data.frame(x=x))->y1
+lines(x,y1,col="blue")
+
+model2<-gam(y~x)
+predict(model2,data.frame(x=x))->y2
+lines(x,y2,col="red")
+
+#곡선(낮은값부터 높은값까지 잘 설명하는 라인)
+model2<-gam(y~s(x,k=20))
+predict(model2,data.frame(x=x))->y2
+lines(x,y2,col="red")
+#------------------------------------------
+meuse.grid$se.fit <- predict(zn.lm, meuse.grid, se.fit = TRUE)$se.fit
