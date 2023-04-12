@@ -192,3 +192,61 @@ predict(model2,data.frame(x=x))->y2
 lines(x,y2,col="red")
 #------------------------------------------
 meuse.grid$se.fit <- predict(zn.lm, meuse.grid, se.fit = TRUE)$se.fit
+
+
+
+
+#4월 12일 수업
+library(gstat)
+library(sp)
+data(meuse)
+
+meuse2=meuse#입력자료
+coordinates(meuse2)=~x+y
+
+data(meuse.grid)#예상자료
+coordinates(meuse.grid)=~x+y
+
+library(automap)
+#ordinary kriging
+model1<-autoKrige(zinc~1,input_data = meuse2,new_data = meuse.grid)
+#universal kriging
+model2<-autoKrige(zinc~dist,input_data = meuse2,new_data = meuse.grid)
+
+meuse.grid$pred<-model1$krige_output$var1.pred
+meuse.grid$pred<-model2$krige_output$var1.pred
+spplot(meuse.grid,"pred")
+
+
+
+
+#-------------------------------------------------------------------
+x<-c(1,2,3,4,5,6,7,8)#위치정보
+y<-c(5,1,8,9,3,2,7,4)#위치정보
+z<-c(10,8,2,3,11,15,7,10)#관측값
+plot(x,y,pch=16)
+
+xy<-data.frame(x,y,z)
+xy2<-data.frame(x=rep(seq(1.8,0.2),6),y=rep(seq(1.8,0.2),each=36),z=1)
+
+
+coordinates(xy)=~x+y
+coordinates(xy2)=~x+y
+
+xy@data$x<-x
+xy@data$y<-y
+
+
+xy2@data$x<-rep(seq(1.8,0.2),36)
+xy2@data$y<-rep(seq(1.8,0.2),each=36)
+
+out1<-autoKrige(z~1+y+I(x^2),input_data = xy,new_data = xy2)
+out8<-autoKrige(z~x+I(x^2),input_data = xy,new_data = xy2)
+xy2$pred<-out1$krige_output$var1.pred
+spplot(xy2,"pred")#예측그림
+spplot(xy,"z")#실제그림
+
+
+#자료 개수가 많아야 그를 수 있다
+
+out1<-autoKrige(z~x+y+I(z^2)+I(y^2)+x*y,input_data = xy,new_data = xy2)
