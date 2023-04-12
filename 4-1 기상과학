@@ -227,7 +227,7 @@ z<-c(10,8,2,3,11,15,7,10)#관측값
 plot(x,y,pch=16)
 
 xy<-data.frame(x,y,z)
-xy2<-data.frame(x=rep(seq(1.8,0.2),6),y=rep(seq(1.8,0.2),each=36),z=1)
+xy2<-data.frame(x=rep(seq(1,8,0.2),6),y=rep(seq(1,8,0.2),each=36),z=1)
 
 
 coordinates(xy)=~x+y
@@ -237,8 +237,8 @@ xy@data$x<-x
 xy@data$y<-y
 
 
-xy2@data$x<-rep(seq(1.8,0.2),36)
-xy2@data$y<-rep(seq(1.8,0.2),each=36)
+xy2@data$x<-rep(seq(1,8,0.2),36)
+xy2@data$y<-rep(seq(1,8,0.2),each=36)
 
 out1<-autoKrige(z~1+y+I(x^2),input_data = xy,new_data = xy2)
 out8<-autoKrige(z~x+I(x^2),input_data = xy,new_data = xy2)
