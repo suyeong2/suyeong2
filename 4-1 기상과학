@@ -250,3 +250,67 @@ spplot(xy,"z")#실제그림
 #자료 개수가 많아야 그를 수 있다
 
 out1<-autoKrige(z~x+y+I(z^2)+I(y^2)+x*y,input_data = xy,new_data = xy2)
+
+
+
+
+
+
+
+#4/19일
+library(sp)
+library(gstat)
+
+data(meuse)
+dim(meuse)
+
+set.seed(1234)
+sel<-sample(1:nrow(meuse), 124)#155개 관측소 중 124개 (80%)를 임의로 선택
+train<-meuse[sel, ]
+test<-meuse[-sel, ]
+
+plot(train$x,train$y, pch=1)
+points(test$x,test$y, pch=15, col="cornflowerblue")
+
+
+#역거리 가중법---------------------------------------------
+##1.공간자료 변환
+coordinates(train)=~x+y
+coordinates(test)=~x+y
+
+##2.역거리 가중법으로 공간보간
+out2<-idw(zinc~1,train, test, idp=2)  #idp=2파워를 바꿔줌에따라 변한다
+out2$var1.pred
+
+##3.검증
+obs<-test$zinc #관측값
+pred<-out2$var1.pred #예측값
+
+##4. 모형평가
+#절대값?
+mean(abs(obs-pred)) #MAE:mean absolute error
+sqrt(mean((obs-pred)^2))  #RMSE: root mean ssquared error
+plot(obs, pred)  #예측이 잘 되고있진 않다
+abline(a=0,b=1, col="red") 
+
+
+###몰라도댐---------------------------------------------------
+##최적화
+cal.f<-function(idp){
+  out2<-idw(zinc~1, train, test, idp=idp)
+  out2$var1.pred
+  
+  ##3.검증
+  obs<-test$zinc#관측값
+  pred<-out2$var1.pred#예측값
+  
+  ##4.모형평가
+  mean(abs(obs-pred)) #MAE:mean absolute error
+  sqrt(mean((obs-pred)^2))  #RMSE: root mean ssquared error
+}
+idp=2
+op<-optim(idp, cal.f)
+op$par
+
+
+
