@@ -1,0 +1,388 @@
+setwd("E:/취업설계/분석")
+
+# data manupulate ---------------------------------------------------------
+
+library(dplyr)
+library(readxl)
+library(tidyr)
+library(ismev)
+library(copula)
+library(ggplot2)
+library(clipr)
+library(copula)
+library(VGAM)
+
+# 방출량 자료 수집 ---------------------------------------------------------------
+
+discharge <- read_excel("discharge.xlsx")
+discharge %>%
+  pivot_longer(cols=3:33) %>%
+  mutate(date=as.Date(paste0(년,"-",substr(월,1,nchar(월)-1),"-",name))) %>%
+  select(date, value) %>%
+  arrange(date) %>%
+  filter(!is.na(value))-> discharge1
+
+# 강수량 자료 수집 ---------------------------------------------------------------
+
+prec <- read_excel("precipitation.xlsx", sheet=1) #남양주시 강수량
+prec %>%
+  pivot_longer(cols=3:33) %>%
+  mutate(date=as.Date(paste0(년,"-",substr(월,1,nchar(월)-1),"-",name))) %>%
+  select(date, value) %>%
+  arrange(date) %>%
+  filter(!is.na(value))-> prec1
+
+# 하천 수위 자료 수집 -------------------------------------------------------------
+
+assi.f <- function(sheet){
+  level <- read_excel("height.xlsx", sheet=sheet)
+  level %>%
+    pivot_longer(cols=3:14) %>%
+    mutate(date=as.Date(paste0(년도,"-",substr(name,1,nchar(name)-1),"-",일))) %>%
+    select(date, value) %>%
+    arrange(date) %>%
+    filter(!is.na(value)) %>%
+    return
+}
+
+level1 <- assi.f(1)
+level1$name <-"팔당댐"
+
+level2 <- assi.f(2)
+level2$name <-"월계2교"
+
+level3 <- assi.f(3)
+level3$name <-"진관교"
+
+level4 <- assi.f(4)
+level4$name <-"오금교"
+
+level5 <- assi.f(5)
+level5$name <-"대곡교"
+
+level6 <- assi.f(6)
+level6$name <-"궁내교"
+
+level7 <- assi.f(7)
+level7$name <-"충훈1교"
+
+level8 <- assi.f(8)
+level8$name <-"경안교"
+
+level9 <- assi.f(9)
+level9$name <-"행주대교"
+
+# # End of data manipulate --------------------------------------------------
+#
+# # discharge1 : 방출량
+# # prec1 : 강수량
+#
+# hist(discharge1$value %>% log, xlab="The dischage of dam, Paldang", main="")
+# hist(prec1$value %>% log)
+#
+
+# # 강수량을 중심으로 정리 시작
+# gpd.fitrange(prec1$value, 10, 150, nint=25) -> ch
+# # 90mm가 적당해 보임
+#
+# prec1 %>%
+# filter(value>=80) -> sel.p
+#
+# discharge1 %>%
+# filter(date %in% sel.p$date) -> sel.d
+#
+# plot(sel.p$value, sel.d$value, pch=16)
+# cor(sel.p$value, sel.d$value, method = "kendall")
+# # 상관성이 높지 않아 코풀라가 적절하지 않음
+#
+# gpd.fitrange(discharge1$value %>% log, 6, 9, nint=25) -> ch
+# # 8500이 적당해보임
+#
+# discharge1 %>%
+# filter(log(value) >= 8.5) -> sel.d
+#
+# prec1 %>%
+# filter(date %in% sel.d$date) -> sel.p
+#
+# sel.p %>% left_join(sel.d, by="date") %>%
+# plot(value.x~log(value.y), data=.)
+#
+# sel.p %>% left_join(sel.d, by="date") -> temp
+# cor(temp$value.x, log(temp$value.y), method="kendall")
+#
+# level1 %>%
+# filter(date %in% sel.d$date) %>%
+# left_join(sel.d, by="date") -> temp
+# cor(temp$value.x %>% as.numeric, log(temp$value.y), method="kendall")
+# plot(log(temp$value.y), temp$value.x %>% as.numeric)
+# # -0.345063
+#
+# level9 %>%
+# filter(date %in% sel.d$date) %>%
+# left_join(sel.d, by="date") -> temp
+# cor(temp$value.x %>% as.numeric, log(temp$value.y), method="kendall")
+# # level2 : -0.003
+# # level3 : 0.105
+# # level4 : 0.110
+# # level5 : 0.084
+# # level6 : -0.010
+# # level7 : -0.003
+# # level8 : -0.017
+# # level9 : 0.124
+#
+# hist(level1$value %>% as.numeric)
+# hist(level2$value %>% as.numeric)
+# hist(level3$value %>% as.numeric)
+# hist(level4$value %>% as.numeric)
+# hist(level5$value %>% as.numeric)
+#
+#
+#
+# # block maxima approach ---------------------------------------------------
+#
+# discharge1 %>%
+# mutate(year=format(date, "%Y")) %>%
+# group_by(year) %>%
+# slice_max(value,n=3, with_ties=F) -> a1
+#
+# prec1 %>%
+# mutate(year=format(date, "%Y")) %>%
+# group_by(year) %>%
+# slice_max(value,n=3, with_ties=F) -> a3
+#
+# level1 %>%
+# mutate(year=format(date, "%Y")) %>%
+# group_by(year) %>%
+# filter(year>2011) %>%
+# mutate(value=as.numeric(value)) %>%
+# slice_max(value,n=3, with_ties=F) -> a2
+#
+# cor(a1$value, a2$value)
+# cor(a1$value, a3$value)
+# cor(a2$value, a3$value)
+
+# moving sum --------------------------------------------------------------
+library(roll)
+
+r.fun <- function(width=width, n=n, level1=level1){
+  discharge1 %>%
+    mutate(year=format(date, "%Y")) %>%
+    mutate(roll=roll_sum(value,width=width)) %>%
+    group_by(year) %>%
+    slice_max(roll,n=n, with_ties=F) -> a1
+  
+  prec1 %>%
+    mutate(year=format(date, "%Y")) %>%
+    mutate(roll=roll_sum(value,width=width)) %>%
+    
+    group_by(year) %>%
+    slice_max(roll,n=n, with_ties=F) -> a3
+  
+  level1 %>%
+    mutate(year=format(date, "%Y")) %>%
+    mutate(value=as.numeric(value)) %>%
+    mutate(roll=roll_sum(value,width=width)) %>%
+    group_by(year) %>%
+    filter(year>2011) %>%
+    slice_max(roll,n=n, with_ties=F) -> a2
+  
+  result<- list()
+  result$a1 = a1
+  result$a2 = a2
+  result$a3 = a3
+  result$cor = c(cor(a1$value %>% log, a2$value %>% log, method="kendall"),
+                 cor(a1$value %>% log, a3$value, method="kendall" ),
+                 cor(a2$value %>% log, a3$value, method="kendall"))
+  return(result)
+} # 상관계수를 자동으로 계산해주는 함수 정의
+
+# 아래는 반복 수행이 필요 (level1:level9, r.mtx1:r.mtx9)
+r.mtx <- matrix(rep(NA,5*50), ncol=5)
+cnt=1
+for(i in 1:5){
+  for(j in 1:10){
+    r.mtx[cnt,1]=i
+    r.mtx[cnt,2]=j
+    r.mtx[cnt,3:5]=r.fun(i,j, level9)$cor
+    cnt=cnt+1
+  }
+}
+
+r.mtx %>% as.data.frame -> r.mtx1
+
+r.mtx <- matrix(rep(NA,5*50), ncol=5)
+cnt=1
+for(i in 1:5){
+  for(j in 1:10){
+    r.mtx[cnt,1]=i
+    r.mtx[cnt,2]=j
+    r.mtx[cnt,3:5]=r.fun(i,j, level9)$cor
+    cnt=cnt+1
+  }
+}
+
+r.mtx %>% as.data.frame -> r.mtx1
+
+
+
+r.mtx1$bn <- "Paldang"
+r.mtx9$bn <- "Haengju"
+
+r.mtx <- rbind(r.mtx1,  r.mtx9)
+# r.mtx3, r.mtx7 은 상관계수에 결측치 존재 (음수) 따라서 연구에서 제외
+head(r.mtx)
+r.mtx %>%
+  pivot_longer(cols=3:5) %>%
+  mutate(name=ifelse(name=="V3","discharge-water level",
+                     ifelse(name=="V4","discharge-precipitation",
+                            "precipitation-water level"))) %>%
+  mutate(V1=paste("rolling",V1)) %>%
+  ggplot(aes(x=V2, y=value, col=name))+
+  geom_hline(yintercept=0)+
+  geom_hline(yintercept=0.5, linetype="dashed")+
+  geom_line(linewidth=1.2, alpha=0.8)+
+  geom_point()+
+  facet_grid(bn~V1)+
+  theme_classic()+theme(legend.position="bottom")+
+  scale_color_discrete(name="")+xlab("") # 결과 시각화
+
+
+###################-----------------------------------------------
+# 주변부 확률 분포 추정
+
+
+
+library(fitdistrplus)
+options(show.error.messages = FALSE)
+dist_name <- c()
+p_value <- c()
+dist <- c("norm", "lnorm", "pois", "exp", "gamma", "nbinom", "geom", "beta", "unif", "logis")
+
+for(i in dist)
+{
+  print(i)
+  f1 <- try(with(trees, fitdist(Height, i, method="mme")))
+  if(class(f1) == "try-error") next;
+  
+  pval <- gofstat(f1)$chisqpvalue
+  if (pval >= 0.05)
+  {
+    print(paste("분포명:", i, ", p-value =", as.character(pval)))
+    dist_name <- c(dist_name, i)
+    p_value <- c(p_value, pval)
+  }
+}
+print("chisq.test...")
+print(data.frame(dist_name, p_value))
+#with(trees, hist(Height))
+with(trees, descdist(Height))
+print(data.frame(dist_name, p_value))
+
+
+
+# roll 1 ------------------------------------------------------------------
+width=1
+n=3
+level0=level1
+type1="discharge"
+type2="wlevel"
+
+rol.fun <-function(width, n, level0, type1, type2){
+  
+  if(type1=="discharge") r.fun(width, n=n, level0)$a1$roll %>% log -> dis1
+  if(type1=="precipitation") r.fun(width, n=n, level0)$a3$roll %>% log -> dis1
+  if(type1=="wlevel") r.fun(width, n=n, level0)$a2$roll-> dis1
+  
+  if(type2=="discharge") r.fun(width, n=n, level0)$a1$roll %>% log -> wat1
+  if(type2=="precipitation") r.fun(width, n=n, level0)$a3$roll %>% log -> wat1
+  if(type2=="wlevel") r.fun(width, n=n, level0)$a2$roll-> wat1
+  
+  plot(wat1, dis1)
+  hist(dis1) # marginal 1
+  hist(wat1) # marginal 2
+  
+  u <- pobs(cbind(dis1, wat1))
+  # u <- u[complete.cases(u),]
+  
+  tau <- kendall.tau(u[,1],u[,2])
+  print(c("tau :", tau))
+  plot(u, pch=16) #pseudo data
+  
+  fit.mpl1 <- fitCopula(normalCopula(dim=2, dispstr="un"), u, method="mpl")
+  fit.mpl2 <- fitCopula(tCopula(dim=2, dispstr="un"),u, method="mpl", estimate.variance=TRUE,start= c(0, 3))
+  fit.mpl3 <- fitCopula(claytonCopula(), u, method="mpl")
+  fit.mpl4 <- fitCopula(frankCopula(), u, method="mpl")
+  fit.mpl5 <- fitCopula(joeCopula(), u, method="mpl")
+  fit.mpl6 <- fitCopula(gumbelCopula(), u, method="mpl")
+  fit.mpl7 <- fitCopula(galambosCopula(), u, method="mpl")
+  fit.mpl8 <- fitCopula(huslerReissCopula(), u, method="mpl")
+  
+  gof1 <- gofCopula(normalCopula(dim=2, dispstr="un"), u, N=200) # 200 bootstrap을 통해 모형 적합성 검증
+  xv1 <- xvCopula(normalCopula(dim=2, dispstr="un"), u, k=10) # cross-validation을 통하 최적 copula 찾기 (높을수록 좋은 모형)
+  print("xv1 done")
+  gof2 <-gofCopula(tCopula(dim=2, dispstr="un", df.fixed = TRUE), u, N=200) # 200 bootstrap을 통해 모형 적합성 검증
+  xv2 <- xvCopula(tCopula(dim=2, dispstr="un", df.fixed = TRUE), u) # cross-validation을 통하 최적 copula 찾기 (높을수록 좋은 모형)
+  print("xv2 done")
+  gof3 <-gofCopula(claytonCopula(), u, N=200,
+                   estim.method="itau", ties=TRUE,ties.method="random") # 200 bootstrap을 통해 모형 적합성 검증
+  xv3 <- xvCopula(claytonCopula(), u)
+  print("xv3 done")
+  gof4 <-gofCopula(frankCopula(), u, N=200) # 200 bootstrap을 통해 모형 적합성 검증
+  xv4 <- xvCopula(frankCopula(), u) # cross-validation을 통하 최적 copula 찾기 (높을수록 좋은 모형)
+  print("xv4 done")
+  gof5 <-gofCopula(joeCopula(), u, N=200) # 200 bootstrap을 통해 모형 적합성 검증
+  xv5 <- xvCopula(joeCopula(), u) # cross-validation을 통하 최적 copula 찾기 (높을수록 좋은 모형)
+  print("xv5 done")
+  gof6 <-gofCopula(gumbelCopula(), u, N=200) # 200 bootstrap을 통해 모형 적합성 검증
+  xv6 <- xvCopula(gumbelCopula(), u) # cross-validation을 통하 최적 copula 찾기 (높을수록 좋은 모형)
+  print("xv6 done")
+  gof7 <-gofCopula(galambosCopula(), u, N=200,
+                   estim.method="itau", ties=TRUE,ties.method="random") # 200 bootstrap을 통해 모형 적합성 검증
+  xv7 <- xvCopula(galambosCopula(), u,
+                  estim.method="itau", ties=TRUE,ties.method="random")
+  print("xv7 done")
+  gof8 <-gofCopula(huslerReissCopula(), u, N=200,
+                   estim.method="itau", ties=TRUE,ties.method="random") # 200 bootstrap을 통해 모형 적합성 검증
+  xv8 <- xvCopula(huslerReissCopula(), u,
+                  estim.method="itau", ties=TRUE,ties.method="random")
+  print("xv8 done")
+  
+  r1 <- c(fit.mpl1@estimate, sqrt(fit.mpl1@var.est), fit.mpl1@loglik, gof1$statistic, gof1$p.value, xv1) %>% round(3)
+  r2 <- c(fit.mpl2@estimate[1], sqrt(fit.mpl2@var.est)[1,1], fit.mpl2@loglik, gof2$statistic, gof2$p.value, xv2)%>% round(3)
+  r3 <- c(fit.mpl3@estimate, sqrt(fit.mpl3@var.est), fit.mpl3@loglik, gof3$statistic, gof3$p.value, xv3)%>% round(3)
+  r4 <- c(fit.mpl4@estimate, sqrt(fit.mpl4@var.est), fit.mpl4@loglik, gof4$statistic, gof4$p.value, xv4)%>% round(3)
+  r5 <- c(fit.mpl5@estimate, sqrt(fit.mpl5@var.est), fit.mpl5@loglik, gof5$statistic, gof5$p.value, xv5)%>% round(3)
+  r6 <- c(fit.mpl6@estimate, sqrt(fit.mpl6@var.est), fit.mpl6@loglik, gof6$statistic, gof6$p.value, xv6)%>% round(3)
+  r7 <- c(fit.mpl7@estimate, sqrt(fit.mpl7@var.est), fit.mpl7@loglik, gof7$statistic, gof7$p.value, xv7)%>% round(3)
+  r8 <- c(fit.mpl8@estimate, sqrt(fit.mpl8@var.est), fit.mpl8@loglik, gof8$statistic, gof8$p.value, xv8)%>% round(3)
+  
+  rbind(r1, r2, r3,r4,r5,r6,r7, r8) %>% data.frame -> out
+  names(out) = c("estimate","se","loglik","statistic","p","xv")
+  out %>% mutate(best = ifelse(xv==max(xv),T,F)) %>%
+    mutate(copula=c("normal","t","clayton","frank","joe","gumbel","galambos","huslerReiss")) %>%
+    select(8,1,2,3,4,5,6,7)-> out
+  
+  return(out)
+}
+
+# 1년에 최대값 하나만 사용할 경우 r-th order 자료에서 r이 증가할수록
+## 방출량-수위의 상관성은 증가하지만
+## 강수량과-수위의 상관성은 감소
+## 강수량-방출량은 상관성이 별로 없음
+## r=4 에서의 강수량=방출량의 상관성이 0.64이고 이후로 일정
+
+r1_paldang <- rol.fun(1,3,level1, "precipitation", "discharge")
+
+r1_daekuk <- rol.fun(1,3,level5, "wlevel","precipitation")
+r1_gungnae <- rol.fun(1,3,level6, "wlevel","precipitation")
+r1_gyeongan <- rol.fun(1,3,level8, "wlevel","precipitation")
+
+r1_wolgye <- rol.fun(1,3,level2, "discharge","wlevel")
+r1_ogeum <- rol.fun(1,3,level4, "discharge","wlevel")
+r1_hangju <- rol.fun(1,3,level9, "discharge","wlevel")
+
+r1_paldang %>% write_clip
+r1_daekuk %>% write_clip
+r1_gungnae %>% write_clip
+r1_gyeongan %>% write_clip
+r1_wolgye %>% write_clip
