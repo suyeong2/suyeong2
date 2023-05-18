@@ -386,3 +386,14 @@ r1_daekuk %>% write_clip
 r1_gungnae %>% write_clip
 r1_gyeongan %>% write_clip
 r1_wolgye %>% write_clip
+
+
+
+
+
+#r-GEV
+library(ismev)
+data(venice)
+venice
+rlarg.fit(venice[,-1])
+#pivot_wider써서 데이터 바꾸기
