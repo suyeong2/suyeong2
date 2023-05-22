@@ -397,3 +397,50 @@ data(venice)
 venice
 rlarg.fit(venice[,-1])
 #pivot_wider써서 데이터 바꾸기
+
+
+d<-discharge %>%
+  pivot_longer(cols=3:33)
+
+da<-d %>%
+  group_by(년)%>% slice_max(value,n=10000)
+
+db<-pivot_wider(
+  da, 
+  names_from = 월,
+  values_from = value
+)
+
+ddd<-as.data.frame(db)
+class(as.data.frame(ddd))
+
+dbdb<-as.logical(ddd)
+as.numeric(ddd)
+
+is.character(db)
+dbdb<-as.character(db)
+is.numeric(db)
+dbdb<-as.numeric(db)
+as.double(db)
+
+tn
+
+mode(ddd)
+mode(db)<-"numeric"
+
+str(db)
+names(db)
+
+ddd<-unlist(db)
+
+
+#r-GEV
+library(ismev)
+data(dbdb)
+
+
+dbdb
+rlarg.fit(ddd[,-1])
+#pivot_wider써서 데이터 바꾸기
+
+
