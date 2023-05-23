@@ -434,6 +434,10 @@ names(db)
 ddd<-unlist(db)
 
 
+
+#
+
+
 #r-GEV
 library(ismev)
 data(dbdb)
@@ -444,3 +448,42 @@ rlarg.fit(ddd[,-1])
 #pivot_wider써서 데이터 바꾸기
 
 
+#------------------------------------------------밑으로 
+library(readxl)
+library(tidyr)
+library(dplyr)
+library(roll)
+
+discharge <- read_excel("discharge.xlsx")
+
+discharge %>%
+  pivot_longer(cols=3:33) %>%
+  mutate(date=as.Date(paste0(년,"-",substr(월,1,nchar(월)-1),"-",name))) %>%
+  select(date, value) %>%
+  arrange(date) %>%
+  filter(!is.na(value))-> discharge1
+
+width=5 # 누적 합을 몇일
+n=3 # 몇차 까지
+
+discharge1 %>%
+  mutate(year=format(date, "%Y")) %>%
+  mutate(roll=roll_sum(value,width=width)) %>%
+  group_by(year) %>%
+  slice_max(roll,n=n, with_ties=F) -> a1
+
+a1 %>% 
+  mutate(rank=1:n) %>% 
+  pivot_wider(id_cols = year, names_from=rank, values_from = roll) -> out1
+library(ismev)
+rlarg.fit(out1[,-1] %>% data.frame)
+
+
+discharge %>% 
+discharge1 %>%
+  mutate(year=format(date, "%Y")) %>%
+  mutate(roll=roll_sum(value,width=width)) %>%
+  group_by(year) %>%
+  slice_max(roll,n=n, with_ties=F) -> a1
+
+##로그변환 된거에 대해서만 데이터 로그변환 시키기................................................
